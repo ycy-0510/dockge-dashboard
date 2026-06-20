@@ -10,5 +10,4 @@ SharedPreferences prefs(Ref ref) {
 
 abstract final class PrefsKey {
   static const endpoint = "endpoint";
-  static const username = "username";
 }

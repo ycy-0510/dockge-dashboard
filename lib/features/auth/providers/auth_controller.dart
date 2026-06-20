@@ -4,6 +4,7 @@ import 'package:dockge_dashboard/core/network/dockge_client.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
 import 'package:dockge_dashboard/core/storage/secure_storage.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'auth_controller.freezed.dart';
@@ -46,7 +47,6 @@ class AuthController extends _$AuthController {
           ref
               .read(prefsProvider)
               .setString(PrefsKey.endpoint, ref.read(dockgeClientProvider).endpoint!);
-          ref.read(prefsProvider).setString(PrefsKey.username, username);
           state = state.copyWith(username: username, loginStatus: .authenticated, error: null);
         } else {
           final msg = res is Map ? res["msg"]?.toString() : res?.toString();
@@ -71,11 +71,11 @@ class AuthController extends _$AuthController {
       return;
     }
     final token = await ref.read(secureStorageProvider).read(key: SecureStorageKey.token);
-    final username = ref.read(prefsProvider).getString(PrefsKey.username);
     if (token == null) {
       state = state.copyWith(loginStatus: .unauthenticated, error: null);
       return;
     }
+    final username = JwtDecoder.decode(token)['username'];
     Completer<void> completer = Completer();
     socket.emitWithAck(
       "loginByToken",
