@@ -68,5 +68,7 @@
 	</array>
 	<key>NSAllowsArbitraryLoads</key>
     <true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Allow this app to use Face ID for quick authentication.</string>
 </dict>
 </plist>

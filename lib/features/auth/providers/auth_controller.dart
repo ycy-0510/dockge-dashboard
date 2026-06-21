@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dockge_dashboard/core/network/dockge_client.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
 import 'package:dockge_dashboard/core/storage/secure_storage.dart';
+import 'package:dockge_dashboard/features/auth/providers/local_auth.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -41,7 +42,7 @@ class AuthController extends _$AuthController {
     socket.emitWithAck(
       "login",
       {"username": username, "password": password},
-      ack: (res) {
+      ack: (res) async {
         if (res is Map && res["ok"] == true) {
           ref.read(secureStorageProvider).write(key: SecureStorageKey.token, value: res['token']);
           ref
@@ -69,6 +70,19 @@ class AuthController extends _$AuthController {
     if (socket == null) {
       state = state.copyWith(loginStatus: .unauthenticated, error: null);
       return;
+    }
+    try {
+      final authenticated = await ref
+          .read(localAuthProvider)
+          .authenticate(
+            localizedReason: 'Please authenticate to access the dashboard',
+            biometricOnly: true,
+          );
+      if (!authenticated) {
+        state = state.copyWith(loginStatus: .unauthenticated, error: "Authenticate failed");
+      }
+    } catch (error) {
+      state = state.copyWith(loginStatus: .unauthenticated, error: error.toString());
     }
     final token = await ref.read(secureStorageProvider).read(key: SecureStorageKey.token);
     if (token == null) {

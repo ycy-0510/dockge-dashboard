@@ -1,10 +1,12 @@
 import 'package:dockge_dashboard/core/network/dockge_client.dart';
 import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
+import 'package:dockge_dashboard/features/auth/providers/local_auth.dart';
 import 'package:dockge_dashboard/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:local_auth/local_auth.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -81,6 +83,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         _endpointController.text = next.endpoint!;
       }
     });
+    ref.listen(readyForBiometricProvider, (prev, next) async {
+      if (prev != next && next) {
+        await ref.read(authControllerProvider.notifier).loginWithToken();
+        if (ref.read(authControllerProvider).loginStatus == .authenticated && context.mounted) {
+          context.replaceNamed(AppRouteName.home);
+        }
+      }
+    });
     return SafeArea(
       child: Center(
         child: Form(
@@ -144,7 +154,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                       : Text("Login"),
                 ),
                 SizedBox(height: 20),
-                if (ref.watch(dockgeClientProvider).status == .connected)
+                if (ref.watch(readyForBiometricProvider))
                   FButton(
                     onPress: () async {
                       await ref.read(authControllerProvider.notifier).loginWithToken();
@@ -154,7 +164,19 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                       }
                     },
                     variant: FButtonVariant.ghost,
-                    child: Icon(FLucideIcons.scanFace, color: Colors.blue, size: 60),
+                    child: Builder(
+                      builder: (context) {
+                        final biometricsTypes = ref.watch(availableBiometricsProvider).value;
+                        if (biometricsTypes?.contains(BiometricType.face) ?? false) {
+                          return Icon(FLucideIcons.scanFace, color: Colors.blue, size: 60);
+                        } else if (biometricsTypes?.contains(BiometricType.fingerprint) ?? false) {
+                          return Icon(FLucideIcons.fingerprint, color: Colors.blue, size: 60);
+                        } else if (biometricsTypes?.contains(BiometricType.iris) ?? false) {
+                          return Icon(FLucideIcons.scanEye, color: Colors.blue, size: 60);
+                        }
+                        return Icon(FLucideIcons.circleAlert, color: Colors.blue, size: 30);
+                      },
+                    ),
                   ),
                 Spacer(flex: 2),
               ],

@@ -7,13 +7,8 @@ import 'package:dockge_dashboard/core/storage/prefs.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  
+
   runApp(
-    ProviderScope(
-      overrides: [
-        prefsProvider.overrideWithValue(prefs),
-      ],
-      child: const Application(),
-    ),
+    ProviderScope(overrides: [prefsProvider.overrideWithValue(prefs)], child: const Application()),
   );
 }
