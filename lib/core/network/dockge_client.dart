@@ -89,23 +89,6 @@ class DockgeClient extends _$DockgeClient {
     socket.onAny(((event, data) => print("$event $data")));
   }
 
-  // void _emitLogin(io.Socket socket, String username, String password) {
-  //   socket.emitWithAck(
-  //     "login",
-  //     {"username": username, "password": password},
-  //     ack: (res) {
-  //       if (res is Map && res["ok"] == true) {
-  //         // TODO: persist res["token"] and navigate to the dashboard.
-  //         state = state.copyWith(error: null);
-  //         print("login ok, token: ${res["token"]}");
-  //       } else {
-  //         final msg = res is Map ? res["msg"]?.toString() : res?.toString();
-  //         state = state.copyWith(error: msg ?? "Login failed");
-  //       }
-  //     },
-  //   );
-  // }
-
   void disconnect() {
     if (state.status != .connected) return;
     state.socket?.disconnect();

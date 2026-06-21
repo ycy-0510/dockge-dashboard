@@ -22,55 +22,29 @@ abstract class AuthState with _$AuthState {
 @riverpod
 class AuthController extends _$AuthController {
   @override
-  AuthState build() {
-    return AuthState(loginStatus: .unauthenticated);
-  }
+  AuthState build() => AuthState(loginStatus: .unauthenticated);
 
   Future<void> login({required String username, required String password}) async {
     state = state.copyWith(loginStatus: .loading, error: null);
-    final connected = await ref.read(dockgeClientProvider.notifier).waitForConnect();
-    if (!connected) {
-      state = state.copyWith(loginStatus: .unauthenticated, error: null);
-      return;
-    }
-    final socket = ref.read(dockgeClientProvider).socket;
-    if (socket == null) {
-      state = state.copyWith(loginStatus: .unauthenticated, error: null);
-      return;
-    }
-    Completer<void> completer = Completer();
-    socket.emitWithAck(
-      "login",
-      {"username": username, "password": password},
-      ack: (res) async {
-        if (res is Map && res["ok"] == true) {
-          ref.read(secureStorageProvider).write(key: SecureStorageKey.token, value: res['token']);
-          ref
-              .read(prefsProvider)
-              .setString(PrefsKey.endpoint, ref.read(dockgeClientProvider).endpoint!);
-          state = state.copyWith(username: username, loginStatus: .authenticated, error: null);
-        } else {
-          final msg = res is Map ? res["msg"]?.toString() : res?.toString();
-          state = state.copyWith(loginStatus: .unauthenticated, error: msg ?? "Login failed");
-        }
-        completer.complete();
+    await _authenticate(
+      event: "login",
+      data: {"username": username, "password": password},
+      onSuccess: (res) async {
+        await ref
+            .read(secureStorageProvider)
+            .write(key: SecureStorageKey.token, value: res['token']);
+        await ref
+            .read(prefsProvider)
+            .setString(PrefsKey.endpoint, ref.read(dockgeClientProvider).endpoint!);
+        if (!ref.mounted) return;
+        state = state.copyWith(username: username, loginStatus: .authenticated, error: null);
       },
     );
-    await completer.future;
   }
 
   Future<void> loginWithToken() async {
     state = state.copyWith(loginStatus: .loading, error: null);
-    final connected = await ref.read(dockgeClientProvider.notifier).waitForConnect();
-    if (!connected) {
-      state = state.copyWith(loginStatus: .unauthenticated, error: null);
-      return;
-    }
-    final socket = ref.read(dockgeClientProvider).socket;
-    if (socket == null) {
-      state = state.copyWith(loginStatus: .unauthenticated, error: null);
-      return;
-    }
+
     try {
       final authenticated = await ref
           .read(localAuthProvider)
@@ -80,37 +54,81 @@ class AuthController extends _$AuthController {
           );
       if (!authenticated) {
         state = state.copyWith(loginStatus: .unauthenticated, error: "Authenticate failed");
+        return;
       }
     } catch (error) {
       state = state.copyWith(loginStatus: .unauthenticated, error: error.toString());
+      return;
     }
+
     final token = await ref.read(secureStorageProvider).read(key: SecureStorageKey.token);
     if (token == null) {
       state = state.copyWith(loginStatus: .unauthenticated, error: null);
       return;
     }
-    final username = JwtDecoder.decode(token)['username'];
-    Completer<void> completer = Completer();
-    socket.emitWithAck(
-      "loginByToken",
-      token,
-      ack: (res) {
-        if (res is Map && res["ok"] == true) {
-          state = state.copyWith(username: username, loginStatus: .authenticated, error: null);
-        } else {
-          final msg = res is Map ? res["msg"]?.toString() : res?.toString();
-          state = state.copyWith(loginStatus: .unauthenticated, error: msg ?? "Login failed");
-        }
-        completer.complete();
+
+    final String username;
+    try {
+      username = JwtDecoder.decode(token)['username'];
+    } catch (_) {
+      await ref.read(secureStorageProvider).delete(key: SecureStorageKey.token);
+      state = state.copyWith(loginStatus: .unauthenticated, error: null);
+      return;
+    }
+
+    await _authenticate(
+      event: "loginByToken",
+      data: token,
+      onSuccess: (_) {
+        if (!ref.mounted) return;
+        state = state.copyWith(username: username, loginStatus: .authenticated, error: null);
       },
     );
-    await completer.future;
   }
 
   void logout() {
     state = state.copyWith(loginStatus: .unauthenticated, username: null, error: null);
-    final socket = ref.read(dockgeClientProvider).socket;
-    if (socket == null) return;
-    socket.emit("logout");
+    ref.read(secureStorageProvider).delete(key: SecureStorageKey.token);
+    ref.read(dockgeClientProvider).socket?.emit("logout");
+  }
+
+  Future<void> _authenticate({
+    required String event,
+    required dynamic data,
+    required FutureOr<void> Function(Map res) onSuccess,
+  }) async {
+    final connected = await ref.read(dockgeClientProvider.notifier).waitForConnect();
+    final socket = connected ? ref.read(dockgeClientProvider).socket : null;
+    if (socket == null) {
+      state = state.copyWith(loginStatus: .unauthenticated, error: "Connection error");
+      return;
+    }
+
+    final completer = Completer<void>();
+    socket.emitWithAck(
+      event,
+      data,
+      ack: (res) async {
+        try {
+          if (res is Map && res["ok"] == true) {
+            await onSuccess(res);
+          } else {
+            final msg = res is Map ? res["msg"]?.toString() : res?.toString();
+            if (!ref.mounted) return;
+            state = state.copyWith(loginStatus: .unauthenticated, error: msg ?? "Login failed");
+          }
+        } finally {
+          if (!completer.isCompleted) completer.complete();
+        }
+      },
+    );
+
+    await completer.future.timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        if (!ref.mounted) return;
+        state = state.copyWith(loginStatus: .unauthenticated, error: "Time out");
+      },
+    );
   }
 }

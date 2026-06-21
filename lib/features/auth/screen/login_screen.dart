@@ -110,7 +110,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                   control: FTextFieldControl.managed(controller: _endpointController),
                   label: Text("Dockge Endpoint"),
                   hint: "https://dockge.yourdomain.com",
-                  autofocus: true,
                   keyboardType: .url,
                   textInputAction: .next,
                   inputFormatters: [],
@@ -133,6 +132,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                   onPress: ref.watch(authControllerProvider).loginStatus == .loading
                       ? null
                       : () async {
+                          FocusScope.of(context).unfocus();
                           if (!(_key.currentState?.validate() ?? false)) return;
                           ref
                               .read(dockgeClientProvider.notifier)
@@ -156,7 +156,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 SizedBox(height: 20),
                 if (ref.watch(readyForBiometricProvider))
                   FButton(
+                    mainAxisSize: .min,
                     onPress: () async {
+                      FocusScope.of(context).unfocus();
                       await ref.read(authControllerProvider.notifier).loginWithToken();
                       if (ref.read(authControllerProvider).loginStatus == .authenticated &&
                           context.mounted) {
