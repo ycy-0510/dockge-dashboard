@@ -12,7 +12,7 @@ part of 'auth_controller.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$AuthState {
+mixin _$AuthState implements DiagnosticableTreeMixin {
 
  LoginStatus get loginStatus; String? get username; String? get error;
 /// Create a copy of AuthState
@@ -22,6 +22,12 @@ mixin _$AuthState {
 $AuthStateCopyWith<AuthState> get copyWith => _$AuthStateCopyWithImpl<AuthState>(this as AuthState, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AuthState'))
+    ..add(DiagnosticsProperty('loginStatus', loginStatus))..add(DiagnosticsProperty('username', username))..add(DiagnosticsProperty('error', error));
+}
 
 @override
 bool operator ==(Object other) {
@@ -33,7 +39,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,loginStatus,username,error);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AuthState(loginStatus: $loginStatus, username: $username, error: $error)';
 }
 
@@ -207,7 +213,7 @@ return $default(_that.loginStatus,_that.username,_that.error);case _:
 /// @nodoc
 
 
-class _AuthState implements AuthState {
+class _AuthState with DiagnosticableTreeMixin implements AuthState {
   const _AuthState({required this.loginStatus, this.username, this.error});
   
 
@@ -222,6 +228,12 @@ class _AuthState implements AuthState {
 _$AuthStateCopyWith<_AuthState> get copyWith => __$AuthStateCopyWithImpl<_AuthState>(this, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AuthState'))
+    ..add(DiagnosticsProperty('loginStatus', loginStatus))..add(DiagnosticsProperty('username', username))..add(DiagnosticsProperty('error', error));
+}
 
 @override
 bool operator ==(Object other) {
@@ -233,7 +245,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,loginStatus,username,error);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AuthState(loginStatus: $loginStatus, username: $username, error: $error)';
 }
 

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:developer';
 
 import 'package:dockge_dashboard/core/storage/prefs.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -86,7 +88,7 @@ class DockgeClient extends _$DockgeClient {
       state = state.copyWith(socket: null, endpoint: null);
     });
 
-    socket.onAny(((event, data) => print("$event $data")));
+    socket.onAny(((event, data) => log(jsonEncode(data), name: event)));
   }
 
   void disconnect() {

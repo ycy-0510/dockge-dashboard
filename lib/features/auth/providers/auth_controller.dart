@@ -4,6 +4,7 @@ import 'package:dockge_dashboard/core/network/dockge_client.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
 import 'package:dockge_dashboard/core/storage/secure_storage.dart';
 import 'package:dockge_dashboard/features/auth/providers/local_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -44,21 +45,22 @@ class AuthController extends _$AuthController {
 
   Future<void> loginWithToken() async {
     state = state.copyWith(loginStatus: .loading, error: null);
-
-    try {
-      final authenticated = await ref
-          .read(localAuthProvider)
-          .authenticate(
-            localizedReason: 'Please authenticate to access the dashboard',
-            biometricOnly: true,
-          );
-      if (!authenticated) {
-        state = state.copyWith(loginStatus: .unauthenticated, error: "Authenticate failed");
+    if (!kDebugMode) {
+      try {
+        final authenticated = await ref
+            .read(localAuthProvider)
+            .authenticate(
+              localizedReason: 'Please authenticate to access the dashboard',
+              biometricOnly: true,
+            );
+        if (!authenticated) {
+          state = state.copyWith(loginStatus: .unauthenticated, error: "Authenticate failed");
+          return;
+        }
+      } catch (error) {
+        state = state.copyWith(loginStatus: .unauthenticated, error: error.toString());
         return;
       }
-    } catch (error) {
-      state = state.copyWith(loginStatus: .unauthenticated, error: error.toString());
-      return;
     }
 
     final token = await ref.read(secureStorageProvider).read(key: SecureStorageKey.token);
