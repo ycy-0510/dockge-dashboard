@@ -1,3 +1,4 @@
+import 'package:dockge_dashboard/core/providers/error_notifier.dart';
 import 'package:dockge_dashboard/routing/app_router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,10 +31,32 @@ class Application extends ConsumerWidget {
       theme: theme.toApproximateMaterialTheme(),
       builder: (_, child) => FTheme(
         data: theme,
-        child: FToaster(child: FTooltipGroup(child: child!)),
+        child: FToaster(
+          child: FTooltipGroup(child: _ErrorListener(child: child!)),
+        ),
       ),
       // You can also replace FScaffold with Material Scaffold.
       routerConfig: ref.watch(routerProvider),
     );
+  }
+}
+
+class _ErrorListener extends ConsumerWidget {
+  final Widget child;
+  const _ErrorListener({required this.child});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(errorProvider, (prev, next) {
+      if (next != null) {
+        showFToast(
+          context: context,
+          icon: Icon(FLucideIcons.circleAlert),
+          title: Text("Error"),
+          description: Text(next.message),
+        );
+      }
+    });
+    return child;
   }
 }

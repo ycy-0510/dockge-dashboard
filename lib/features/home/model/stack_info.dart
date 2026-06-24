@@ -1,28 +1,8 @@
+import 'package:dockge_dashboard/features/home/model/status.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'stack_info.freezed.dart';
 part 'stack_info.g.dart';
-
-enum StackStatus {
-  @JsonValue(0)
-  unknown,
-  @JsonValue(1)
-  inactive,
-  @JsonValue(2)
-  paused,
-  @JsonValue(3)
-  active,
-  @JsonValue(4)
-  exited;
-
-  String get label => switch (this) {
-    .unknown => 'Unknown',
-    .inactive => 'Inactive',
-    .paused => 'Paused',
-    .active => 'Active',
-    .exited => 'Exited',
-  };
-}
 
 @freezed
 abstract class StackItem with _$StackItem {

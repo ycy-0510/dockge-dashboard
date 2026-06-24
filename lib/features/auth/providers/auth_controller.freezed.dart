@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthState implements DiagnosticableTreeMixin {
 
- LoginStatus get loginStatus; String? get username; String? get error;
+ LoginStatus get loginStatus; String? get username;
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,21 +26,21 @@ $AuthStateCopyWith<AuthState> get copyWith => _$AuthStateCopyWithImpl<AuthState>
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'AuthState'))
-    ..add(DiagnosticsProperty('loginStatus', loginStatus))..add(DiagnosticsProperty('username', username))..add(DiagnosticsProperty('error', error));
+    ..add(DiagnosticsProperty('loginStatus', loginStatus))..add(DiagnosticsProperty('username', username));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus)&&(identical(other.username, username) || other.username == username)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus)&&(identical(other.username, username) || other.username == username));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,loginStatus,username,error);
+int get hashCode => Object.hash(runtimeType,loginStatus,username);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'AuthState(loginStatus: $loginStatus, username: $username, error: $error)';
+  return 'AuthState(loginStatus: $loginStatus, username: $username)';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $AuthStateCopyWith<$Res>  {
   factory $AuthStateCopyWith(AuthState value, $Res Function(AuthState) _then) = _$AuthStateCopyWithImpl;
 @useResult
 $Res call({
- LoginStatus loginStatus, String? username, String? error
+ LoginStatus loginStatus, String? username
 });
 
 
@@ -68,11 +68,10 @@ class _$AuthStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? loginStatus = null,Object? username = freezed,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? loginStatus = null,Object? username = freezed,}) {
   return _then(_self.copyWith(
 loginStatus: null == loginStatus ? _self.loginStatus : loginStatus // ignore: cast_nullable_to_non_nullable
 as LoginStatus,username: freezed == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
-as String?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -158,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LoginStatus loginStatus,  String? username,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LoginStatus loginStatus,  String? username)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthState() when $default != null:
-return $default(_that.loginStatus,_that.username,_that.error);case _:
+return $default(_that.loginStatus,_that.username);case _:
   return orElse();
 
 }
@@ -179,10 +178,10 @@ return $default(_that.loginStatus,_that.username,_that.error);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LoginStatus loginStatus,  String? username,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LoginStatus loginStatus,  String? username)  $default,) {final _that = this;
 switch (_that) {
 case _AuthState():
-return $default(_that.loginStatus,_that.username,_that.error);case _:
+return $default(_that.loginStatus,_that.username);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +198,10 @@ return $default(_that.loginStatus,_that.username,_that.error);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LoginStatus loginStatus,  String? username,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LoginStatus loginStatus,  String? username)?  $default,) {final _that = this;
 switch (_that) {
 case _AuthState() when $default != null:
-return $default(_that.loginStatus,_that.username,_that.error);case _:
+return $default(_that.loginStatus,_that.username);case _:
   return null;
 
 }
@@ -214,12 +213,11 @@ return $default(_that.loginStatus,_that.username,_that.error);case _:
 
 
 class _AuthState with DiagnosticableTreeMixin implements AuthState {
-  const _AuthState({required this.loginStatus, this.username, this.error});
+  const _AuthState({required this.loginStatus, this.username});
   
 
 @override final  LoginStatus loginStatus;
 @override final  String? username;
-@override final  String? error;
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
@@ -232,21 +230,21 @@ _$AuthStateCopyWith<_AuthState> get copyWith => __$AuthStateCopyWithImpl<_AuthSt
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'AuthState'))
-    ..add(DiagnosticsProperty('loginStatus', loginStatus))..add(DiagnosticsProperty('username', username))..add(DiagnosticsProperty('error', error));
+    ..add(DiagnosticsProperty('loginStatus', loginStatus))..add(DiagnosticsProperty('username', username));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus)&&(identical(other.username, username) || other.username == username)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus)&&(identical(other.username, username) || other.username == username));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,loginStatus,username,error);
+int get hashCode => Object.hash(runtimeType,loginStatus,username);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'AuthState(loginStatus: $loginStatus, username: $username, error: $error)';
+  return 'AuthState(loginStatus: $loginStatus, username: $username)';
 }
 
 
@@ -257,7 +255,7 @@ abstract mixin class _$AuthStateCopyWith<$Res> implements $AuthStateCopyWith<$Re
   factory _$AuthStateCopyWith(_AuthState value, $Res Function(_AuthState) _then) = __$AuthStateCopyWithImpl;
 @override @useResult
 $Res call({
- LoginStatus loginStatus, String? username, String? error
+ LoginStatus loginStatus, String? username
 });
 
 
@@ -274,11 +272,10 @@ class __$AuthStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? loginStatus = null,Object? username = freezed,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? loginStatus = null,Object? username = freezed,}) {
   return _then(_AuthState(
 loginStatus: null == loginStatus ? _self.loginStatus : loginStatus // ignore: cast_nullable_to_non_nullable
 as LoginStatus,username: freezed == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
-as String?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

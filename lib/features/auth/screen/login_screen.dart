@@ -3,6 +3,7 @@ import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
 import 'package:dockge_dashboard/features/auth/providers/local_auth.dart';
 import 'package:dockge_dashboard/routing/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -58,26 +59,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(authControllerProvider, (prev, next) {
-      if (prev?.error != next.error && next.error != null) {
-        showFToast(
-          context: context,
-          icon: Icon(FLucideIcons.circleAlert),
-          title: Text("Auth Error"),
-          description: Text(next.error!),
-        );
-      }
-    });
-    ref.listen(dockgeClientProvider, (prev, next) {
-      if (prev?.error != next.error && next.error != null) {
-        showFToast(
-          context: context,
-          icon: Icon(FLucideIcons.circleAlert),
-          title: Text("Connection Error"),
-          description: Text(next.error!),
-        );
-      }
-    });
     ref.listen(dockgeClientProvider, (prev, next) {
       if (prev?.endpoint == null && next.endpoint != null) {
         _endpointController.text = next.endpoint!;
@@ -132,11 +113,13 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                   onPress: ref.watch(authControllerProvider).loginStatus == .loading
                       ? null
                       : () async {
+                          HapticFeedback.lightImpact();
                           FocusScope.of(context).unfocus();
                           if (!(_key.currentState?.validate() ?? false)) return;
+                          final endpoint = _endpointController.text.trim().replaceAll(RegExp(r'/+$'), '');
                           ref
                               .read(dockgeClientProvider.notifier)
-                              .connect(endpoint: _endpointController.text.trim());
+                              .connect(endpoint: endpoint);
                           await ref
                               .read(authControllerProvider.notifier)
                               .login(
@@ -149,15 +132,17 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                           }
                         },
                   size: .lg,
-                  child: ref.watch(authControllerProvider).loginStatus == .loading
+                  prefix: ref.watch(authControllerProvider).loginStatus == .loading
                       ? FCircularProgress()
-                      : Text("Login"),
+                      : null,
+                  child: Text("Login"),
                 ),
                 SizedBox(height: 20),
                 if (ref.watch(readyForBiometricProvider))
                   FButton(
                     mainAxisSize: .min,
                     onPress: () async {
+                      HapticFeedback.lightImpact();
                       FocusScope.of(context).unfocus();
                       await ref.read(authControllerProvider.notifier).loginWithToken();
                       if (ref.read(authControllerProvider).loginStatus == .authenticated &&

@@ -40,7 +40,7 @@ final class StackListProvider extends $NotifierProvider<StackList, StackInfo?> {
   }
 }
 
-String _$stackListHash() => r'764b0c2cc11218aca9367a42df65388ddbaa2395';
+String _$stackListHash() => r'b9f387aa3b22d70f94f8c2a9fc3a85afaabad2d5';
 
 abstract class _$StackList extends $Notifier<StackInfo?> {
   StackInfo? build();

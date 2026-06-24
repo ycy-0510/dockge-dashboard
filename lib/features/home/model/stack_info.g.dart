@@ -26,7 +26,7 @@ Map<String, dynamic> _$StackItemToJson(_StackItem instance) =>
 const _$StackStatusEnumMap = {
   StackStatus.unknown: 0,
   StackStatus.inactive: 1,
-  StackStatus.paused: 2,
+  StackStatus.deploying: 2,
   StackStatus.active: 3,
   StackStatus.exited: 4,
 };

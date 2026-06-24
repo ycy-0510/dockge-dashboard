@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:dockge_dashboard/core/providers/error_notifier.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -14,16 +15,11 @@ enum SocketStatus { disconnected, connecting, connected }
 
 @freezed
 abstract class DockgeClientState with _$DockgeClientState {
-  const DockgeClientState._();
-
   const factory DockgeClientState({
     io.Socket? socket,
-    String? error,
     required String? endpoint,
     required SocketStatus status,
   }) = _DockgeClientState;
-
-  bool get hasError => error != null;
 }
 
 @Riverpod(keepAlive: true)
@@ -34,7 +30,7 @@ class DockgeClient extends _$DockgeClient {
     if (endpoint != null) {
       Future(() => connect(endpoint: endpoint));
     }
-    return DockgeClientState(endpoint: null, status: .disconnected, error: null);
+    return DockgeClientState(endpoint: null, status: .disconnected);
   }
 
   Completer<bool> _connected = Completer<bool>();
@@ -51,7 +47,7 @@ class DockgeClient extends _$DockgeClient {
         return;
       }
     }
-    state = state.copyWith(endpoint: endpoint, status: .connecting, error: null);
+    state = state.copyWith(endpoint: endpoint, status: .connecting);
     final socket = io.io(
       endpoint,
       io.OptionBuilder()
@@ -63,14 +59,15 @@ class DockgeClient extends _$DockgeClient {
     state = state.copyWith(socket: socket);
 
     socket.onConnect((_) {
-      state = state.copyWith(status: .connected, error: null);
+      state = state.copyWith(status: .connected);
       if (!_connected.isCompleted) {
         _connected.complete(true);
       }
     });
 
     socket.onConnectError((error) {
-      state = state.copyWith(status: .disconnected, error: error.toString());
+      state = state.copyWith(status: .disconnected);
+      ref.read(errorProvider.notifier).show(error.toString());
       if (!_connected.isCompleted) {
         _connected.complete(false);
         _connected = Completer<bool>();
@@ -78,23 +75,25 @@ class DockgeClient extends _$DockgeClient {
     });
 
     socket.onDisconnect((_) {
-      state = state.copyWith(status: .disconnected, error: null);
+      state = state.copyWith(status: .disconnected);
       _connected = Completer<bool>();
     });
 
     socket.onError((error) {
-      state = state.copyWith(error: error.toString());
-      state.socket?.dispose();
-      state = state.copyWith(socket: null, endpoint: null);
+      final currentSocket = state.socket;
+      state = state.copyWith(status: .disconnected, socket: null);
+      currentSocket?.dispose();
+      ref.read(errorProvider.notifier).show(error.toString());
     });
 
     socket.onAny(((event, data) => log(jsonEncode(data), name: event)));
   }
 
   void disconnect() {
-    if (state.status != .connected) return;
-    state.socket?.disconnect();
-    state.socket?.dispose();
-    state = state.copyWith(socket: null);
+    if (state.socket == null) return;
+    final currentSocket = state.socket;
+    state = state.copyWith(socket: null, status: .disconnected);
+    currentSocket?.disconnect();
+    currentSocket?.dispose();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
 import 'package:dockge_dashboard/features/auth/screen/login_screen.dart';
 import 'package:dockge_dashboard/features/home/screen/home_screen.dart';
+import 'package:dockge_dashboard/features/home/screen/stack_detail_screen.dart';
 import 'package:dockge_dashboard/routing/routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +24,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutePath.home,
         name: AppRouteName.home,
         builder: (context, state) => HomePage(),
+      ),
+      GoRoute(
+        path: AppRoutePath.stackDetail,
+        name: AppRouteName.stackDetail,
+        redirect: (context, state) {
+          final name = state.pathParameters['name'];
+          if (name == null || name.trim().isEmpty) {
+            return AppRoutePath.home;
+          }
+          return null;
+        },
+        builder: (context, state) {
+          final stackName = state.pathParameters['name']!;
+          return StackDetailPage(stackName: stackName);
+        },
       ),
     ],
   );

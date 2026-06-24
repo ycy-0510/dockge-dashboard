@@ -41,7 +41,7 @@ final class DockgeClientProvider
   }
 }
 
-String _$dockgeClientHash() => r'5ebb263c5b95071a1af8e328e267d9a8f841a48d';
+String _$dockgeClientHash() => r'a915dcbb010c96cfc70c6fce80e6c062c7f7933c';
 
 abstract class _$DockgeClient extends $Notifier<DockgeClientState> {
   DockgeClientState build();

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DockgeClientState {
 
- io.Socket? get socket; String? get error; String? get endpoint; SocketStatus get status;
+ io.Socket? get socket; String? get endpoint; SocketStatus get status;
 /// Create a copy of DockgeClientState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $DockgeClientStateCopyWith<DockgeClientState> get copyWith => _$DockgeClientStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DockgeClientState&&(identical(other.socket, socket) || other.socket == socket)&&(identical(other.error, error) || other.error == error)&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DockgeClientState&&(identical(other.socket, socket) || other.socket == socket)&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.status, status) || other.status == status));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,socket,error,endpoint,status);
+int get hashCode => Object.hash(runtimeType,socket,endpoint,status);
 
 @override
 String toString() {
-  return 'DockgeClientState(socket: $socket, error: $error, endpoint: $endpoint, status: $status)';
+  return 'DockgeClientState(socket: $socket, endpoint: $endpoint, status: $status)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $DockgeClientStateCopyWith<$Res>  {
   factory $DockgeClientStateCopyWith(DockgeClientState value, $Res Function(DockgeClientState) _then) = _$DockgeClientStateCopyWithImpl;
 @useResult
 $Res call({
- io.Socket? socket, String? error, String? endpoint, SocketStatus status
+ io.Socket? socket, String? endpoint, SocketStatus status
 });
 
 
@@ -62,11 +62,10 @@ class _$DockgeClientStateCopyWithImpl<$Res>
 
 /// Create a copy of DockgeClientState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? socket = freezed,Object? error = freezed,Object? endpoint = freezed,Object? status = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? socket = freezed,Object? endpoint = freezed,Object? status = null,}) {
   return _then(_self.copyWith(
 socket: freezed == socket ? _self.socket : socket // ignore: cast_nullable_to_non_nullable
-as io.Socket?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
-as String?,endpoint: freezed == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
+as io.Socket?,endpoint: freezed == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SocketStatus,
   ));
@@ -153,10 +152,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( io.Socket? socket,  String? error,  String? endpoint,  SocketStatus status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( io.Socket? socket,  String? endpoint,  SocketStatus status)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DockgeClientState() when $default != null:
-return $default(_that.socket,_that.error,_that.endpoint,_that.status);case _:
+return $default(_that.socket,_that.endpoint,_that.status);case _:
   return orElse();
 
 }
@@ -174,10 +173,10 @@ return $default(_that.socket,_that.error,_that.endpoint,_that.status);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( io.Socket? socket,  String? error,  String? endpoint,  SocketStatus status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( io.Socket? socket,  String? endpoint,  SocketStatus status)  $default,) {final _that = this;
 switch (_that) {
 case _DockgeClientState():
-return $default(_that.socket,_that.error,_that.endpoint,_that.status);case _:
+return $default(_that.socket,_that.endpoint,_that.status);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +193,10 @@ return $default(_that.socket,_that.error,_that.endpoint,_that.status);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( io.Socket? socket,  String? error,  String? endpoint,  SocketStatus status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( io.Socket? socket,  String? endpoint,  SocketStatus status)?  $default,) {final _that = this;
 switch (_that) {
 case _DockgeClientState() when $default != null:
-return $default(_that.socket,_that.error,_that.endpoint,_that.status);case _:
+return $default(_that.socket,_that.endpoint,_that.status);case _:
   return null;
 
 }
@@ -208,12 +207,11 @@ return $default(_that.socket,_that.error,_that.endpoint,_that.status);case _:
 /// @nodoc
 
 
-class _DockgeClientState extends DockgeClientState {
-  const _DockgeClientState({this.socket, this.error, required this.endpoint, required this.status}): super._();
+class _DockgeClientState implements DockgeClientState {
+  const _DockgeClientState({this.socket, required this.endpoint, required this.status});
   
 
 @override final  io.Socket? socket;
-@override final  String? error;
 @override final  String? endpoint;
 @override final  SocketStatus status;
 
@@ -227,16 +225,16 @@ _$DockgeClientStateCopyWith<_DockgeClientState> get copyWith => __$DockgeClientS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DockgeClientState&&(identical(other.socket, socket) || other.socket == socket)&&(identical(other.error, error) || other.error == error)&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DockgeClientState&&(identical(other.socket, socket) || other.socket == socket)&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.status, status) || other.status == status));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,socket,error,endpoint,status);
+int get hashCode => Object.hash(runtimeType,socket,endpoint,status);
 
 @override
 String toString() {
-  return 'DockgeClientState(socket: $socket, error: $error, endpoint: $endpoint, status: $status)';
+  return 'DockgeClientState(socket: $socket, endpoint: $endpoint, status: $status)';
 }
 
 
@@ -247,7 +245,7 @@ abstract mixin class _$DockgeClientStateCopyWith<$Res> implements $DockgeClientS
   factory _$DockgeClientStateCopyWith(_DockgeClientState value, $Res Function(_DockgeClientState) _then) = __$DockgeClientStateCopyWithImpl;
 @override @useResult
 $Res call({
- io.Socket? socket, String? error, String? endpoint, SocketStatus status
+ io.Socket? socket, String? endpoint, SocketStatus status
 });
 
 
@@ -264,11 +262,10 @@ class __$DockgeClientStateCopyWithImpl<$Res>
 
 /// Create a copy of DockgeClientState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? socket = freezed,Object? error = freezed,Object? endpoint = freezed,Object? status = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? socket = freezed,Object? endpoint = freezed,Object? status = null,}) {
   return _then(_DockgeClientState(
 socket: freezed == socket ? _self.socket : socket // ignore: cast_nullable_to_non_nullable
-as io.Socket?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
-as String?,endpoint: freezed == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
+as io.Socket?,endpoint: freezed == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SocketStatus,
   ));

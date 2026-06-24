@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dockge_dashboard/core/network/dockge_client.dart';
+import 'package:dockge_dashboard/core/providers/error_notifier.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
 import 'package:dockge_dashboard/core/storage/secure_storage.dart';
 import 'package:dockge_dashboard/features/auth/providers/local_auth.dart';
@@ -16,17 +17,16 @@ enum LoginStatus { loading, authenticated, unauthenticated }
 
 @freezed
 abstract class AuthState with _$AuthState {
-  const factory AuthState({required LoginStatus loginStatus, String? username, String? error}) =
-      _AuthState;
+  const factory AuthState({required LoginStatus loginStatus, String? username}) = _AuthState;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class AuthController extends _$AuthController {
   @override
   AuthState build() => AuthState(loginStatus: .unauthenticated);
 
   Future<void> login({required String username, required String password}) async {
-    state = state.copyWith(loginStatus: .loading, error: null);
+    state = state.copyWith(loginStatus: .loading);
     await _authenticate(
       event: "login",
       data: {"username": username, "password": password},
@@ -38,13 +38,13 @@ class AuthController extends _$AuthController {
             .read(prefsProvider)
             .setString(PrefsKey.endpoint, ref.read(dockgeClientProvider).endpoint!);
         if (!ref.mounted) return;
-        state = state.copyWith(username: username, loginStatus: .authenticated, error: null);
+        state = state.copyWith(username: username, loginStatus: .authenticated);
       },
     );
   }
 
   Future<void> loginWithToken() async {
-    state = state.copyWith(loginStatus: .loading, error: null);
+    state = state.copyWith(loginStatus: .loading);
     if (!kDebugMode) {
       try {
         final authenticated = await ref
@@ -54,27 +54,30 @@ class AuthController extends _$AuthController {
               biometricOnly: true,
             );
         if (!authenticated) {
-          state = state.copyWith(loginStatus: .unauthenticated, error: "Authenticate failed");
+          state = state.copyWith(loginStatus: .unauthenticated);
+          ref.read(errorProvider.notifier).show("Authenticate failed");
           return;
         }
       } catch (error) {
-        state = state.copyWith(loginStatus: .unauthenticated, error: error.toString());
+        state = state.copyWith(loginStatus: .unauthenticated);
+        ref.read(errorProvider.notifier).show(error.toString());
         return;
       }
     }
 
     final token = await ref.read(secureStorageProvider).read(key: SecureStorageKey.token);
     if (token == null) {
-      state = state.copyWith(loginStatus: .unauthenticated, error: null);
+      state = state.copyWith(loginStatus: .unauthenticated);
       return;
     }
 
     final String username;
     try {
+      // 僅用於 UI 顯示，實際 token 驗證由後端 loginByToken 事件負責
       username = JwtDecoder.decode(token)['username'];
     } catch (_) {
       await ref.read(secureStorageProvider).delete(key: SecureStorageKey.token);
-      state = state.copyWith(loginStatus: .unauthenticated, error: null);
+      state = state.copyWith(loginStatus: .unauthenticated);
       return;
     }
 
@@ -83,14 +86,14 @@ class AuthController extends _$AuthController {
       data: token,
       onSuccess: (_) {
         if (!ref.mounted) return;
-        state = state.copyWith(username: username, loginStatus: .authenticated, error: null);
+        state = state.copyWith(username: username, loginStatus: .authenticated);
       },
     );
   }
 
-  void logout() {
-    state = state.copyWith(loginStatus: .unauthenticated, username: null, error: null);
-    ref.read(secureStorageProvider).delete(key: SecureStorageKey.token);
+  Future<void> logout() async {
+    state = state.copyWith(loginStatus: .unauthenticated, username: null);
+    await ref.read(secureStorageProvider).delete(key: SecureStorageKey.token);
     ref.read(dockgeClientProvider).socket?.emit("logout");
   }
 
@@ -102,7 +105,8 @@ class AuthController extends _$AuthController {
     final connected = await ref.read(dockgeClientProvider.notifier).waitForConnect();
     final socket = connected ? ref.read(dockgeClientProvider).socket : null;
     if (socket == null) {
-      state = state.copyWith(loginStatus: .unauthenticated, error: "Connection error");
+      state = state.copyWith(loginStatus: .unauthenticated);
+      ref.read(errorProvider.notifier).show("Connection error");
       return;
     }
 
@@ -111,13 +115,15 @@ class AuthController extends _$AuthController {
       event,
       data,
       ack: (res) async {
+        if (completer.isCompleted) return;
         try {
           if (res is Map && res["ok"] == true) {
             await onSuccess(res);
           } else {
             final msg = res is Map ? res["msg"]?.toString() : res?.toString();
             if (!ref.mounted) return;
-            state = state.copyWith(loginStatus: .unauthenticated, error: msg ?? "Login failed");
+            state = state.copyWith(loginStatus: .unauthenticated);
+            ref.read(errorProvider.notifier).show(msg ?? "Login failed");
           }
         } finally {
           if (!completer.isCompleted) completer.complete();
@@ -129,7 +135,8 @@ class AuthController extends _$AuthController {
       const Duration(seconds: 10),
       onTimeout: () {
         if (!ref.mounted) return;
-        state = state.copyWith(loginStatus: .unauthenticated, error: "Time out");
+        state = state.copyWith(loginStatus: .unauthenticated);
+        ref.read(errorProvider.notifier).show("Time out");
       },
     );
   }
