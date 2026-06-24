@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:dockge_dashboard/core/network/dockge_client.dart';
 import 'package:dockge_dashboard/core/providers/error_notifier.dart';
 import 'package:dockge_dashboard/core/extensions/socket_io_ext.dart';
+import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
 import 'package:dockge_dashboard/features/home/model/stack_detail_info.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaml/yaml.dart';
@@ -26,7 +27,19 @@ class StackDetail extends _$StackDetail {
         return;
       }
 
-      final statusRes = await socket.emitAgentAsync("", "serviceStatusList", [stackName]);
+      // Wait if authentication is in progress (e.g. reconnecting from background)
+      while (ref.read(authControllerProvider).loginStatus == LoginStatus.loading) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      if (ref.read(authControllerProvider).loginStatus != LoginStatus.authenticated) {
+        ref.read(errorProvider.notifier).show('Not authenticated');
+        state = null;
+        return;
+      }
+
+      final statusRes = await socket.emitAgentAsync("", "serviceStatusList", [
+        stackName,
+      ]);
       if (!ref.mounted) return;
       if (statusRes['ok'] != true) {
         ref.read(errorProvider.notifier).show('Failed to get service status');

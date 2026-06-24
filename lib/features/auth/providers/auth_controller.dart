@@ -4,7 +4,6 @@ import 'package:dockge_dashboard/core/network/dockge_client.dart';
 import 'package:dockge_dashboard/core/providers/error_notifier.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
 import 'package:dockge_dashboard/core/storage/secure_storage.dart';
-import 'package:dockge_dashboard/features/auth/providers/local_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -23,7 +22,17 @@ abstract class AuthState with _$AuthState {
 @Riverpod(keepAlive: true)
 class AuthController extends _$AuthController {
   @override
-  AuthState build() => AuthState(loginStatus: .unauthenticated);
+  AuthState build() {
+    final endpoint = ref.read(prefsProvider).getString(PrefsKey.endpoint);
+    if (endpoint != null) {
+      return AuthState(loginStatus: .loading);
+    }
+    return AuthState(loginStatus: .unauthenticated);
+  }
+
+  void setUnauthenticated() {
+    state = state.copyWith(loginStatus: .unauthenticated);
+  }
 
   Future<void> login({required String username, required String password}) async {
     state = state.copyWith(loginStatus: .loading);
@@ -45,26 +54,6 @@ class AuthController extends _$AuthController {
 
   Future<void> loginWithToken() async {
     state = state.copyWith(loginStatus: .loading);
-    if (!kDebugMode) {
-      try {
-        final authenticated = await ref
-            .read(localAuthProvider)
-            .authenticate(
-              localizedReason: 'Please authenticate to access the dashboard',
-              biometricOnly: true,
-            );
-        if (!authenticated) {
-          state = state.copyWith(loginStatus: .unauthenticated);
-          ref.read(errorProvider.notifier).show("Authenticate failed");
-          return;
-        }
-      } catch (error) {
-        state = state.copyWith(loginStatus: .unauthenticated);
-        ref.read(errorProvider.notifier).show(error.toString());
-        return;
-      }
-    }
-
     final token = await ref.read(secureStorageProvider).read(key: SecureStorageKey.token);
     if (token == null) {
       state = state.copyWith(loginStatus: .unauthenticated);
@@ -73,7 +62,6 @@ class AuthController extends _$AuthController {
 
     final String username;
     try {
-      // 僅用於 UI 顯示，實際 token 驗證由後端 loginByToken 事件負責
       username = JwtDecoder.decode(token)['username'];
     } catch (_) {
       await ref.read(secureStorageProvider).delete(key: SecureStorageKey.token);
@@ -114,10 +102,14 @@ class AuthController extends _$AuthController {
     socket.emitWithAck(
       event,
       data,
-      ack: (res) async {
+      ack: (dynamic err, [dynamic res]) async {
         if (completer.isCompleted) return;
         try {
-          if (res is Map && res["ok"] == true) {
+          if (err != null) {
+            if (!ref.mounted) return;
+            state = state.copyWith(loginStatus: .unauthenticated);
+            ref.read(errorProvider.notifier).show("Time out");
+          } else if (res is Map && res["ok"] == true) {
             await onSuccess(res);
           } else {
             final msg = res is Map ? res["msg"]?.toString() : res?.toString();
@@ -131,13 +123,6 @@ class AuthController extends _$AuthController {
       },
     );
 
-    await completer.future.timeout(
-      const Duration(seconds: 10),
-      onTimeout: () {
-        if (!ref.mounted) return;
-        state = state.copyWith(loginStatus: .unauthenticated);
-        ref.read(errorProvider.notifier).show("Time out");
-      },
-    );
+    await completer.future;
   }
 }

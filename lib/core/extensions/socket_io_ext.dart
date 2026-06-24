@@ -8,9 +8,19 @@ extension SocketIoExt on io.Socket {
 
   Future<dynamic> emitAgentAsync(String endpoint, String event, List args) {
     final completer = Completer<dynamic>();
-    emitWithAck('agent', [endpoint, event, ...args], ack: (response) {
-      completer.complete(response);
-    });
+    emitWithAck(
+      'agent',
+      [endpoint, event, ...args],
+      ack: (dynamic err, [dynamic response]) {
+        if (!completer.isCompleted) {
+          if (err != null) {
+            completer.completeError(err);
+          } else {
+            completer.complete(response);
+          }
+        }
+      },
+    );
     return completer.future;
   }
 }

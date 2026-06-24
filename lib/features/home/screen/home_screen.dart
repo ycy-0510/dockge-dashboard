@@ -46,7 +46,6 @@ class HomePage extends ConsumerWidget {
               );
               if (result == true && context.mounted) {
                 ref.read(authControllerProvider.notifier).logout();
-                context.replaceNamed(AppRouteName.login);
               }
             },
             icon: Icon(FLucideIcons.logOut),

@@ -4,9 +4,12 @@ import 'dart:developer';
 
 import 'package:dockge_dashboard/core/providers/error_notifier.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
+import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
+
+import 'package:flutter/widgets.dart';
 
 part 'dockge_client.g.dart';
 part 'dockge_client.freezed.dart';
@@ -23,14 +26,31 @@ abstract class DockgeClientState with _$DockgeClientState {
 }
 
 @Riverpod(keepAlive: true)
-class DockgeClient extends _$DockgeClient {
+class DockgeClient extends _$DockgeClient with WidgetsBindingObserver {
   @override
   DockgeClientState build() {
+    WidgetsBinding.instance.addObserver(this);
+    ref.onDispose(() {
+      WidgetsBinding.instance.removeObserver(this);
+    });
+
     String? endpoint = ref.read(prefsProvider).getString(PrefsKey.endpoint);
     if (endpoint != null) {
       Future(() => connect(endpoint: endpoint));
     }
-    return DockgeClientState(endpoint: null, status: .disconnected);
+    return DockgeClientState(endpoint: null, status: SocketStatus.disconnected);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (this.state.socket != null && this.state.endpoint != null) {
+        log("App resumed, forcing socket reconnect...");
+        final socket = this.state.socket!;
+        socket.disconnect();
+        socket.connect();
+      }
+    }
   }
 
   Completer<bool> _connected = Completer<bool>();
@@ -40,37 +60,47 @@ class DockgeClient extends _$DockgeClient {
   }
 
   void connect({required String endpoint}) {
-    if (state.status != .disconnected) {
-      if (state.endpoint != endpoint) {
-        disconnect();
-      } else {
-        return;
+    if (state.socket != null && state.endpoint == endpoint) {
+      if (state.status == SocketStatus.disconnected) {
+        state = state.copyWith(status: SocketStatus.connecting);
+        state.socket!.connect();
       }
+      return;
     }
-    state = state.copyWith(endpoint: endpoint, status: .connecting);
+
+    disconnect();
+    state = state.copyWith(endpoint: endpoint, status: SocketStatus.connecting);
     final socket = io.io(
       endpoint,
       io.OptionBuilder()
           .setTransports(['websocket'])
           .enableAutoConnect()
           .enableReconnection()
+          .setAckTimeout(5000)
           .build(),
     );
     state = state.copyWith(socket: socket);
 
     socket.onConnect((_) {
-      state = state.copyWith(status: .connected);
+      state = state.copyWith(status: SocketStatus.connected);
       if (!_connected.isCompleted) {
         _connected.complete(true);
+      }
+      final loginStatus = ref.read(authControllerProvider).loginStatus;
+      if (loginStatus == LoginStatus.loading || loginStatus == LoginStatus.authenticated) {
+        ref.read(authControllerProvider.notifier).loginWithToken();
       }
     });
 
     socket.onConnectError((error) {
-      state = state.copyWith(status: .disconnected);
+      state = state.copyWith(status: SocketStatus.disconnected);
       ref.read(errorProvider.notifier).show(error.toString());
       if (!_connected.isCompleted) {
         _connected.complete(false);
         _connected = Completer<bool>();
+      }
+      if (ref.read(authControllerProvider).loginStatus == LoginStatus.loading) {
+        ref.read(authControllerProvider.notifier).setUnauthenticated();
       }
     });
 
@@ -80,10 +110,11 @@ class DockgeClient extends _$DockgeClient {
     });
 
     socket.onError((error) {
-      final currentSocket = state.socket;
-      state = state.copyWith(status: .disconnected, socket: null);
-      currentSocket?.dispose();
+      state = state.copyWith(status: .disconnected);
       ref.read(errorProvider.notifier).show(error.toString());
+      if (ref.read(authControllerProvider).loginStatus == LoginStatus.loading) {
+        ref.read(authControllerProvider.notifier).setUnauthenticated();
+      }
     });
 
     socket.onAny(((event, data) => log(jsonEncode(data), name: event)));

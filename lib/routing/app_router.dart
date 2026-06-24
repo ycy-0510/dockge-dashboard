@@ -6,12 +6,37 @@ import 'package:dockge_dashboard/routing/routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flutter/foundation.dart';
+
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+  RouterNotifier(this._ref) {
+    _ref.listen(authControllerProvider, (_, _) => notifyListeners());
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  // final authState = ref.watch(authStateProvider);
+  final notifier = RouterNotifier(ref);
+
   return GoRouter(
+    initialLocation: AppRoutePath.login,
+    refreshListenable: notifier,
     redirect: (context, state) {
-      final isLoggedIn = ref.read(authControllerProvider).loginStatus == .authenticated;
-      if (!isLoggedIn && state.matchedLocation != AppRoutePath.login) return AppRoutePath.login;
+      final status = ref.read(authControllerProvider).loginStatus;
+      final isLoginRoute = state.matchedLocation == AppRoutePath.login;
+
+      // When the app launches, the path might be '/' or '/login'.
+      // If it's loading, we want to stay on the login route to show the spinner.
+      if (status == LoginStatus.loading) {
+        if (state.matchedLocation == '/') return AppRoutePath.login;
+        return null; 
+      }
+      if (status == LoginStatus.unauthenticated && !isLoginRoute) {
+        return AppRoutePath.login;
+      }
+      if (status == LoginStatus.authenticated && isLoginRoute) {
+        return AppRoutePath.home;
+      }
       return null;
     },
     routes: [

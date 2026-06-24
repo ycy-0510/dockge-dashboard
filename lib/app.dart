@@ -1,3 +1,4 @@
+import 'package:dockge_dashboard/core/network/dockge_client.dart';
 import 'package:dockge_dashboard/core/providers/error_notifier.dart';
 import 'package:dockge_dashboard/routing/app_router.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,7 @@ class Application extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(dockgeClientProvider);
     final theme = MediaQuery.of(context).platformBrightness == .light
         ? const <TargetPlatform>{.android, .iOS, .fuchsia}.contains(defaultTargetPlatform)
               ? FThemes.neutral.light.touch
