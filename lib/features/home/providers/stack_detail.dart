@@ -6,7 +6,9 @@ import 'package:dockge_dashboard/core/providers/error_notifier.dart';
 import 'package:dockge_dashboard/core/extensions/socket_io_ext.dart';
 import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
 import 'package:dockge_dashboard/features/home/model/stack_detail_info.dart';
+import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:xterm/xterm.dart';
 import 'package:yaml/yaml.dart';
 
 part 'stack_detail.g.dart';
@@ -37,9 +39,7 @@ class StackDetail extends _$StackDetail {
         return;
       }
 
-      final statusRes = await socket.emitAgentAsync("", "serviceStatusList", [
-        stackName,
-      ]);
+      final statusRes = await socket.emitAgentAsync("", "serviceStatusList", [stackName]);
       if (!ref.mounted) return;
       if (statusRes['ok'] != true) {
         ref.read(errorProvider.notifier).show('Failed to get service status');
@@ -82,6 +82,52 @@ class StackDetail extends _$StackDetail {
       if (!ref.mounted) return;
       ref.read(errorProvider.notifier).show('Failed to load stack details');
       state = null;
+    }
+  }
+}
+
+@riverpod
+class StackTerminal extends _$StackTerminal {
+  String? stackName;
+  @override
+  Terminal build() {
+    final socket = ref.read(dockgeClientProvider).socket;
+    ref.onDispose(() {
+      socket?.emitAgent('', 'leaveCombinedTerminal', [stackName]);
+    });
+    final terminal = Terminal(
+      maxLines: 10000,
+      onBell: () => HapticFeedback.mediumImpact(),
+      onResize: (width, height, pixelWidth, pixelHeight) {
+        socket?.emitAgent('', 'terminalResize', ['combined--$stackName', height, width]);
+      },
+    );
+    return terminal;
+  }
+
+  void join(String stackName) async {
+    this.stackName = stackName;
+    try {
+      final socket = ref.read(dockgeClientProvider).socket;
+      final scrollBackData = (await socket?.emitAgentAsync('', 'terminalJoin', [stackName])) as Map;
+      log(jsonEncode(scrollBackData), name: 'StackTerminal');
+      if (scrollBackData['ok'] == true) {
+        state.write('Terminal connected: $stackName\r\n');
+        state.write(scrollBackData['buffer']);
+        socket?.on('agent', (data) {
+          if (data[0] == 'terminalWrite' && data[1].toString().contains(stackName)) {
+            final text = data[2] as String; // [terminalWrite,terminalName, rawText]
+            state.write(text);
+          }
+        });
+      } else {
+        if (!ref.mounted) return;
+        ref.read(errorProvider.notifier).show('Fail to fetch terminal data');
+      }
+    } catch (error) {
+      log(error.toString(), name: 'StackTerminal');
+      if (!ref.mounted) return;
+      ref.read(errorProvider.notifier).show(error.toString());
     }
   }
 }

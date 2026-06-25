@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:xterm/ui.dart';
 
 class StackDetailPage extends ConsumerStatefulWidget {
   final String stackName;
@@ -16,17 +17,23 @@ class StackDetailPage extends ConsumerStatefulWidget {
 }
 
 class _StackDetailPageState extends ConsumerState<StackDetailPage> {
+  int _index = 0;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(stackDetailProvider.notifier).fetch(widget.stackName);
+      ref.read(stackTerminalProvider.notifier).join(widget.stackName);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(stackDetailProvider);
+    ref.watch(stackTerminalProvider);
     return FScaffold(
+      childPad: _index != 1,
       header: FHeader.nested(
         prefixes: [
           FHeaderAction.back(
@@ -34,7 +41,7 @@ class _StackDetailPageState extends ConsumerState<StackDetailPage> {
               HapticFeedback.lightImpact();
               context.pop();
             },
-          )
+          ),
         ],
         title: Text(widget.stackName),
         suffixes: [
@@ -113,13 +120,24 @@ class _StackDetailPageState extends ConsumerState<StackDetailPage> {
           ),
         ],
       ),
-      child: StackDetailBody(),
+      footer: FBottomNavigationBar(
+        index: _index,
+        onChange: (index) => setState(() => _index = index),
+        children: const [
+          FBottomNavigationBarItem(icon: Icon(FLucideIcons.server), label: Text('Services')),
+          FBottomNavigationBarItem(
+            icon: Icon(FLucideIcons.squareTerminal),
+            label: Text('Terminal'),
+          ),
+        ],
+      ),
+      child: [StackDetailServices(), StackDetailTerminal()][_index],
     );
   }
 }
 
-class StackDetailBody extends ConsumerWidget {
-  const StackDetailBody({super.key});
+class StackDetailServices extends ConsumerWidget {
+  const StackDetailServices({super.key});
 
   FBadgeVariantConstraint statusVariant(String status) {
     if (status == 'running' || status == 'healthy') return .primary;
@@ -133,55 +151,53 @@ class StackDetailBody extends ConsumerWidget {
     if (detailInfo == null) {
       return Center(child: Text("No details info"));
     }
-    return SingleChildScrollView(
-      child: Column(
-        spacing: 10,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ListView.separated(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: detailInfo.services.length,
-            itemBuilder: (context, idx) {
-              ServiceInfo serviceInfo = detailInfo.services[idx];
-              return FCard(
-                title: Text(serviceInfo.name),
-                subtitle: Text(serviceInfo.imageName),
-                child: Wrap(
-                  spacing: 5,
-                  children: [
-                    FBadge(
-                      style: statusBadgeStyles(
-                        colors: context.theme.colors,
-                        typography: context.theme.typography,
-                        style: context.theme.style,
-                        touch: true,
-                      ).variants[statusVariant(serviceInfo.status)]!,
-                      child: Text(serviceInfo.status),
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      itemCount: detailInfo.services.length,
+      itemBuilder: (context, idx) {
+        ServiceInfo serviceInfo = detailInfo.services[idx];
+        return FCard(
+          title: Text(serviceInfo.name),
+          subtitle: Text(serviceInfo.imageName),
+          child: Wrap(
+            spacing: 5,
+            children: [
+              FBadge(
+                style: statusBadgeStyles(
+                  colors: context.theme.colors,
+                  typography: context.theme.typography,
+                  style: context.theme.style,
+                  touch: true,
+                ).variants[statusVariant(serviceInfo.status)]!,
+                child: Text(serviceInfo.status),
+              ),
+              for (final port in serviceInfo.ports)
+                FTooltip(
+                  tipBuilder: (context, controller) => Text(port.toString()),
+                  child: FBadge(
+                    variant: .outline,
+                    child: Text(
+                      port.hostIp == null ? '${port.hostPort}' : '${port.hostIp}:${port.hostPort}',
                     ),
-                    for (final port in serviceInfo.ports)
-                      FTooltip(
-                        tipBuilder: (context, controller) => Text(port.toString()),
-                        child: FBadge(
-                          variant: .outline,
-                          child: Text(
-                            port.hostIp == null
-                                ? '${port.hostPort}'
-                                : '${port.hostIp}:${port.hostPort}',
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
-              );
-            },
-            separatorBuilder: (BuildContext context, int index) {
-              return SizedBox(height: 10);
-            },
+            ],
           ),
-        ],
-      ),
+        );
+      },
+      separatorBuilder: (BuildContext context, int index) {
+        return SizedBox(height: 10);
+      },
     );
+  }
+}
+
+class StackDetailTerminal extends ConsumerWidget {
+  const StackDetailTerminal({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final terminal = ref.watch(stackTerminalProvider);
+    return TerminalView(terminal, readOnly: true);
   }
 }
