@@ -198,6 +198,6 @@ class StackDetailTerminal extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final terminal = ref.watch(stackTerminalProvider);
-    return TerminalView(terminal, readOnly: true);
+    return TerminalView(terminal, readOnly: true, padding: EdgeInsets.all(10));
   }
 }

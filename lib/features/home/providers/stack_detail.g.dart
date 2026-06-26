@@ -93,7 +93,7 @@ final class StackTerminalProvider
   }
 }
 
-String _$stackTerminalHash() => r'2f5a45d57051f0bf4abc216155c74cd89bfc5ca3';
+String _$stackTerminalHash() => r'292850fa6d947d51ca9f92f7afb213d0a8a4154a';
 
 abstract class _$StackTerminal extends $Notifier<Terminal> {
   Terminal build();

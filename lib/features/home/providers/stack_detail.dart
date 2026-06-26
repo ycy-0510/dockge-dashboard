@@ -109,21 +109,39 @@ class StackTerminal extends _$StackTerminal {
     this.stackName = stackName;
     try {
       final socket = ref.read(dockgeClientProvider).socket;
-      final scrollBackData = (await socket?.emitAgentAsync('', 'terminalJoin', [stackName])) as Map;
-      log(jsonEncode(scrollBackData), name: 'StackTerminal');
-      if (scrollBackData['ok'] == true) {
-        state.write('Terminal connected: $stackName\r\n');
-        state.write(scrollBackData['buffer']);
-        socket?.on('agent', (data) {
-          if (data[0] == 'terminalWrite' && data[1].toString().contains(stackName)) {
-            final text = data[2] as String; // [terminalWrite,terminalName, rawText]
-            state.write(text);
-          }
-        });
-      } else {
-        if (!ref.mounted) return;
-        ref.read(errorProvider.notifier).show('Fail to fetch terminal data');
-      }
+      state.write('Terminal connected: $stackName\r\n');
+      socket
+          ?.emitAgentAsync('', 'terminalJoin', ['compose--$stackName'])
+          .then((scrollBackData) {
+            log(jsonEncode(scrollBackData), name: 'StackTerminal');
+            if (scrollBackData['ok'] == true) {
+              state.write(scrollBackData['buffer']);
+            }
+          })
+          .catchError((error) {
+            log(error.toString(), name: 'StackTerminal');
+            if (!ref.mounted) return;
+            ref.read(errorProvider.notifier).show(error.toString());
+          });
+      socket
+          ?.emitAgentAsync('', 'terminalJoin', ['combined--$stackName'])
+          .then((scrollBackData) {
+            log(jsonEncode(scrollBackData), name: 'StackTerminal');
+            if (scrollBackData['ok'] == true) {
+              state.write(scrollBackData['buffer']);
+            }
+          })
+          .catchError((error) {
+            log(error.toString(), name: 'StackTerminal');
+            if (!ref.mounted) return;
+            ref.read(errorProvider.notifier).show(error.toString());
+          });
+      socket?.on('agent', (data) {
+        if (data[0] == 'terminalWrite' && data[1].toString().contains(stackName)) {
+          final text = data[2] as String; // [terminalWrite,terminalName, rawText]
+          state.write(text);
+        }
+      });
     } catch (error) {
       log(error.toString(), name: 'StackTerminal');
       if (!ref.mounted) return;
