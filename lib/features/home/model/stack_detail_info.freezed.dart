@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StackDetailInfo {
 
- String get name; List<ServiceInfo> get services;
+ String get name; StackItem? get info; List<ServiceInfo> get services;
 /// Create a copy of StackDetailInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $StackDetailInfoCopyWith<StackDetailInfo> get copyWith => _$StackDetailInfoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StackDetailInfo&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.services, services));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StackDetailInfo&&(identical(other.name, name) || other.name == name)&&(identical(other.info, info) || other.info == info)&&const DeepCollectionEquality().equals(other.services, services));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(services));
+int get hashCode => Object.hash(runtimeType,name,info,const DeepCollectionEquality().hash(services));
 
 @override
 String toString() {
-  return 'StackDetailInfo(name: $name, services: $services)';
+  return 'StackDetailInfo(name: $name, info: $info, services: $services)';
 }
 
 
@@ -45,11 +45,11 @@ abstract mixin class $StackDetailInfoCopyWith<$Res>  {
   factory $StackDetailInfoCopyWith(StackDetailInfo value, $Res Function(StackDetailInfo) _then) = _$StackDetailInfoCopyWithImpl;
 @useResult
 $Res call({
- String name, List<ServiceInfo> services
+ String name, StackItem? info, List<ServiceInfo> services
 });
 
 
-
+$StackItemCopyWith<$Res>? get info;
 
 }
 /// @nodoc
@@ -62,14 +62,27 @@ class _$StackDetailInfoCopyWithImpl<$Res>
 
 /// Create a copy of StackDetailInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? services = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? info = freezed,Object? services = null,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,services: null == services ? _self.services : services // ignore: cast_nullable_to_non_nullable
+as String,info: freezed == info ? _self.info : info // ignore: cast_nullable_to_non_nullable
+as StackItem?,services: null == services ? _self.services : services // ignore: cast_nullable_to_non_nullable
 as List<ServiceInfo>,
   ));
 }
+/// Create a copy of StackDetailInfo
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StackItemCopyWith<$Res>? get info {
+    if (_self.info == null) {
+    return null;
+  }
 
+  return $StackItemCopyWith<$Res>(_self.info!, (value) {
+    return _then(_self.copyWith(info: value));
+  });
+}
 }
 
 
@@ -151,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  List<ServiceInfo> services)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  StackItem? info,  List<ServiceInfo> services)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StackDetailInfo() when $default != null:
-return $default(_that.name,_that.services);case _:
+return $default(_that.name,_that.info,_that.services);case _:
   return orElse();
 
 }
@@ -172,10 +185,10 @@ return $default(_that.name,_that.services);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  List<ServiceInfo> services)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  StackItem? info,  List<ServiceInfo> services)  $default,) {final _that = this;
 switch (_that) {
 case _StackDetailInfo():
-return $default(_that.name,_that.services);case _:
+return $default(_that.name,_that.info,_that.services);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -192,10 +205,10 @@ return $default(_that.name,_that.services);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  List<ServiceInfo> services)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  StackItem? info,  List<ServiceInfo> services)?  $default,) {final _that = this;
 switch (_that) {
 case _StackDetailInfo() when $default != null:
-return $default(_that.name,_that.services);case _:
+return $default(_that.name,_that.info,_that.services);case _:
   return null;
 
 }
@@ -207,10 +220,11 @@ return $default(_that.name,_that.services);case _:
 
 
 class _StackDetailInfo implements StackDetailInfo {
-  const _StackDetailInfo({required this.name, required final  List<ServiceInfo> services}): _services = services;
+  const _StackDetailInfo({required this.name, required this.info, required final  List<ServiceInfo> services}): _services = services;
   
 
 @override final  String name;
+@override final  StackItem? info;
  final  List<ServiceInfo> _services;
 @override List<ServiceInfo> get services {
   if (_services is EqualUnmodifiableListView) return _services;
@@ -229,16 +243,16 @@ _$StackDetailInfoCopyWith<_StackDetailInfo> get copyWith => __$StackDetailInfoCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StackDetailInfo&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._services, _services));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StackDetailInfo&&(identical(other.name, name) || other.name == name)&&(identical(other.info, info) || other.info == info)&&const DeepCollectionEquality().equals(other._services, _services));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_services));
+int get hashCode => Object.hash(runtimeType,name,info,const DeepCollectionEquality().hash(_services));
 
 @override
 String toString() {
-  return 'StackDetailInfo(name: $name, services: $services)';
+  return 'StackDetailInfo(name: $name, info: $info, services: $services)';
 }
 
 
@@ -249,11 +263,11 @@ abstract mixin class _$StackDetailInfoCopyWith<$Res> implements $StackDetailInfo
   factory _$StackDetailInfoCopyWith(_StackDetailInfo value, $Res Function(_StackDetailInfo) _then) = __$StackDetailInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String name, List<ServiceInfo> services
+ String name, StackItem? info, List<ServiceInfo> services
 });
 
 
-
+@override $StackItemCopyWith<$Res>? get info;
 
 }
 /// @nodoc
@@ -266,15 +280,28 @@ class __$StackDetailInfoCopyWithImpl<$Res>
 
 /// Create a copy of StackDetailInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? services = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? info = freezed,Object? services = null,}) {
   return _then(_StackDetailInfo(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,services: null == services ? _self._services : services // ignore: cast_nullable_to_non_nullable
+as String,info: freezed == info ? _self.info : info // ignore: cast_nullable_to_non_nullable
+as StackItem?,services: null == services ? _self._services : services // ignore: cast_nullable_to_non_nullable
 as List<ServiceInfo>,
   ));
 }
 
+/// Create a copy of StackDetailInfo
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StackItemCopyWith<$Res>? get info {
+    if (_self.info == null) {
+    return null;
+  }
 
+  return $StackItemCopyWith<$Res>(_self.info!, (value) {
+    return _then(_self.copyWith(info: value));
+  });
+}
 }
 
 /// @nodoc
@@ -543,6 +570,269 @@ as String,imageName: null == imageName ? _self.imageName : imageName // ignore: 
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,ports: null == ports ? _self._ports : ports // ignore: cast_nullable_to_non_nullable
 as List<PortMapping>,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$StackTerminalState {
+
+ String get name; Terminal get combinedTerminal; Terminal? get composeTerminal;
+/// Create a copy of StackTerminalState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$StackTerminalStateCopyWith<StackTerminalState> get copyWith => _$StackTerminalStateCopyWithImpl<StackTerminalState>(this as StackTerminalState, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StackTerminalState&&(identical(other.name, name) || other.name == name)&&(identical(other.combinedTerminal, combinedTerminal) || other.combinedTerminal == combinedTerminal)&&(identical(other.composeTerminal, composeTerminal) || other.composeTerminal == composeTerminal));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,name,combinedTerminal,composeTerminal);
+
+@override
+String toString() {
+  return 'StackTerminalState(name: $name, combinedTerminal: $combinedTerminal, composeTerminal: $composeTerminal)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $StackTerminalStateCopyWith<$Res>  {
+  factory $StackTerminalStateCopyWith(StackTerminalState value, $Res Function(StackTerminalState) _then) = _$StackTerminalStateCopyWithImpl;
+@useResult
+$Res call({
+ String name, Terminal combinedTerminal, Terminal? composeTerminal
+});
+
+
+
+
+}
+/// @nodoc
+class _$StackTerminalStateCopyWithImpl<$Res>
+    implements $StackTerminalStateCopyWith<$Res> {
+  _$StackTerminalStateCopyWithImpl(this._self, this._then);
+
+  final StackTerminalState _self;
+  final $Res Function(StackTerminalState) _then;
+
+/// Create a copy of StackTerminalState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? combinedTerminal = null,Object? composeTerminal = freezed,}) {
+  return _then(_self.copyWith(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,combinedTerminal: null == combinedTerminal ? _self.combinedTerminal : combinedTerminal // ignore: cast_nullable_to_non_nullable
+as Terminal,composeTerminal: freezed == composeTerminal ? _self.composeTerminal : composeTerminal // ignore: cast_nullable_to_non_nullable
+as Terminal?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [StackTerminalState].
+extension StackTerminalStatePatterns on StackTerminalState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _StackTerminalState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _StackTerminalState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _StackTerminalState value)  $default,){
+final _that = this;
+switch (_that) {
+case _StackTerminalState():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _StackTerminalState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _StackTerminalState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  Terminal combinedTerminal,  Terminal? composeTerminal)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _StackTerminalState() when $default != null:
+return $default(_that.name,_that.combinedTerminal,_that.composeTerminal);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  Terminal combinedTerminal,  Terminal? composeTerminal)  $default,) {final _that = this;
+switch (_that) {
+case _StackTerminalState():
+return $default(_that.name,_that.combinedTerminal,_that.composeTerminal);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  Terminal combinedTerminal,  Terminal? composeTerminal)?  $default,) {final _that = this;
+switch (_that) {
+case _StackTerminalState() when $default != null:
+return $default(_that.name,_that.combinedTerminal,_that.composeTerminal);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _StackTerminalState implements StackTerminalState {
+  const _StackTerminalState({required this.name, required this.combinedTerminal, this.composeTerminal});
+  
+
+@override final  String name;
+@override final  Terminal combinedTerminal;
+@override final  Terminal? composeTerminal;
+
+/// Create a copy of StackTerminalState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$StackTerminalStateCopyWith<_StackTerminalState> get copyWith => __$StackTerminalStateCopyWithImpl<_StackTerminalState>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StackTerminalState&&(identical(other.name, name) || other.name == name)&&(identical(other.combinedTerminal, combinedTerminal) || other.combinedTerminal == combinedTerminal)&&(identical(other.composeTerminal, composeTerminal) || other.composeTerminal == composeTerminal));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,name,combinedTerminal,composeTerminal);
+
+@override
+String toString() {
+  return 'StackTerminalState(name: $name, combinedTerminal: $combinedTerminal, composeTerminal: $composeTerminal)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$StackTerminalStateCopyWith<$Res> implements $StackTerminalStateCopyWith<$Res> {
+  factory _$StackTerminalStateCopyWith(_StackTerminalState value, $Res Function(_StackTerminalState) _then) = __$StackTerminalStateCopyWithImpl;
+@override @useResult
+$Res call({
+ String name, Terminal combinedTerminal, Terminal? composeTerminal
+});
+
+
+
+
+}
+/// @nodoc
+class __$StackTerminalStateCopyWithImpl<$Res>
+    implements _$StackTerminalStateCopyWith<$Res> {
+  __$StackTerminalStateCopyWithImpl(this._self, this._then);
+
+  final _StackTerminalState _self;
+  final $Res Function(_StackTerminalState) _then;
+
+/// Create a copy of StackTerminalState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? combinedTerminal = null,Object? composeTerminal = freezed,}) {
+  return _then(_StackTerminalState(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,combinedTerminal: null == combinedTerminal ? _self.combinedTerminal : combinedTerminal // ignore: cast_nullable_to_non_nullable
+as Terminal,composeTerminal: freezed == composeTerminal ? _self.composeTerminal : composeTerminal // ignore: cast_nullable_to_non_nullable
+as Terminal?,
   ));
 }
 

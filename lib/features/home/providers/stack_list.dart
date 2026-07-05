@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:dockge_dashboard/core/network/dockge_client.dart';
-import 'package:dockge_dashboard/core/providers/error_notifier.dart';
+import 'package:dockge_dashboard/core/providers/toast_notifier.dart';
 import 'package:dockge_dashboard/features/home/model/stack_info.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -33,7 +33,7 @@ class StackList extends _$StackList {
       }
     } catch (e) {
       log(e.toString(), name: 'StackList');
-      ref.read(errorProvider.notifier).show('Failed to update stack list');
+      ref.read(toastProvider.notifier).showError(message: 'Failed to update stack list');
     }
   }
 }

@@ -1,11 +1,16 @@
+import 'package:dockge_dashboard/features/home/model/stack_info.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:xterm/xterm.dart';
 
 part 'stack_detail_info.freezed.dart';
 
 @freezed
 abstract class StackDetailInfo with _$StackDetailInfo {
-  const factory StackDetailInfo({required String name, required List<ServiceInfo> services}) =
-      _StackDetailInfo;
+  const factory StackDetailInfo({
+    required String name,
+    required StackItem? info,
+    required List<ServiceInfo> services,
+  }) = _StackDetailInfo;
 }
 
 @freezed
@@ -88,4 +93,13 @@ class PortMapping {
       protocol: protocol,
     );
   }
+}
+
+@freezed
+abstract class StackTerminalState with _$StackTerminalState {
+  const factory StackTerminalState({
+    required String name,
+    required Terminal combinedTerminal,
+    Terminal? composeTerminal,
+  }) = _StackTerminalState;
 }

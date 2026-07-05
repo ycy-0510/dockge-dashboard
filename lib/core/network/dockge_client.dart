@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:dockge_dashboard/core/providers/error_notifier.dart';
+import 'package:dockge_dashboard/core/providers/toast_notifier.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
 import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -76,7 +76,7 @@ class DockgeClient extends _$DockgeClient with WidgetsBindingObserver {
           .setTransports(['websocket'])
           .enableAutoConnect()
           .enableReconnection()
-          .setAckTimeout(5000)
+          .setAckTimeout(15000)
           .build(),
     );
     state = state.copyWith(socket: socket);
@@ -94,7 +94,7 @@ class DockgeClient extends _$DockgeClient with WidgetsBindingObserver {
 
     socket.onConnectError((error) {
       state = state.copyWith(status: SocketStatus.disconnected);
-      ref.read(errorProvider.notifier).show(error.toString());
+      ref.read(toastProvider.notifier).showError(message: error.toString());
       if (!_connected.isCompleted) {
         _connected.complete(false);
         _connected = Completer<bool>();
@@ -111,13 +111,19 @@ class DockgeClient extends _$DockgeClient with WidgetsBindingObserver {
 
     socket.onError((error) {
       state = state.copyWith(status: .disconnected);
-      ref.read(errorProvider.notifier).show(error.toString());
+      ref.read(toastProvider.notifier).showError(message: error.toString());
       if (ref.read(authControllerProvider).loginStatus == LoginStatus.loading) {
         ref.read(authControllerProvider.notifier).setUnauthenticated();
       }
     });
 
-    socket.onAny(((event, data) => log(jsonEncode(data), name: event)));
+    socket.onAny((event, data) {
+      // Skip high-frequency terminal streaming to avoid encoding overhead.
+      if (event == 'agent' && data is List && data.isNotEmpty && data[0] == 'terminalWrite') {
+        return;
+      }
+      log(jsonEncode(data), name: event);
+    });
   }
 
   void disconnect() {

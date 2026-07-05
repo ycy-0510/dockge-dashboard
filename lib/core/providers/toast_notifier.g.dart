@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'error_notifier.dart';
+part of 'toast_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,51 @@ part of 'error_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(ErrorNotifier)
-final errorProvider = ErrorNotifierProvider._();
+@ProviderFor(ToastNotifier)
+final toastProvider = ToastNotifierProvider._();
 
-final class ErrorNotifierProvider
-    extends $NotifierProvider<ErrorNotifier, AppError?> {
-  ErrorNotifierProvider._()
+final class ToastNotifierProvider
+    extends $NotifierProvider<ToastNotifier, ToastMsg?> {
+  ToastNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'errorProvider',
+        name: r'toastProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$errorNotifierHash();
+  String debugGetCreateSourceHash() => _$toastNotifierHash();
 
   @$internal
   @override
-  ErrorNotifier create() => ErrorNotifier();
+  ToastNotifier create() => ToastNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(AppError? value) {
+  Override overrideWithValue(ToastMsg? value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<AppError?>(value),
+      providerOverride: $SyncValueProvider<ToastMsg?>(value),
     );
   }
 }
 
-String _$errorNotifierHash() => r'727abacf6ab56f985a9b5a0077729ba5f9b7740c';
+String _$toastNotifierHash() => r'e4c6545cf5af7eba8dfbfe802b7b91f65b14eda0';
 
-abstract class _$ErrorNotifier extends $Notifier<AppError?> {
-  AppError? build();
+abstract class _$ToastNotifier extends $Notifier<ToastMsg?> {
+  ToastMsg? build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<AppError?, AppError?>;
+    final ref = this.ref as $Ref<ToastMsg?, ToastMsg?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AppError?, AppError?>,
-              AppError?,
+              AnyNotifier<ToastMsg?, ToastMsg?>,
+              ToastMsg?,
               Object?,
               Object?
             >;

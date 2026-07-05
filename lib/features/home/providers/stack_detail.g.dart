@@ -41,7 +41,7 @@ final class StackDetailProvider
   }
 }
 
-String _$stackDetailHash() => r'4222b3ccced3072bee85c48a2de8f3241e87bea3';
+String _$stackDetailHash() => r'bca1f532e28318346635957d356b69dca65f20e4';
 
 abstract class _$StackDetail extends $Notifier<StackDetailInfo?> {
   StackDetailInfo? build();
@@ -65,7 +65,7 @@ abstract class _$StackDetail extends $Notifier<StackDetailInfo?> {
 final stackTerminalProvider = StackTerminalProvider._();
 
 final class StackTerminalProvider
-    extends $NotifierProvider<StackTerminal, Terminal> {
+    extends $NotifierProvider<StackTerminal, StackTerminalState?> {
   StackTerminalProvider._()
     : super(
         from: null,
@@ -85,27 +85,27 @@ final class StackTerminalProvider
   StackTerminal create() => StackTerminal();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Terminal value) {
+  Override overrideWithValue(StackTerminalState? value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<Terminal>(value),
+      providerOverride: $SyncValueProvider<StackTerminalState?>(value),
     );
   }
 }
 
-String _$stackTerminalHash() => r'292850fa6d947d51ca9f92f7afb213d0a8a4154a';
+String _$stackTerminalHash() => r'c773336ebaa900dc4c901d30d8d69701492ef80a';
 
-abstract class _$StackTerminal extends $Notifier<Terminal> {
-  Terminal build();
+abstract class _$StackTerminal extends $Notifier<StackTerminalState?> {
+  StackTerminalState? build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<Terminal, Terminal>;
+    final ref = this.ref as $Ref<StackTerminalState?, StackTerminalState?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<Terminal, Terminal>,
-              Terminal,
+              AnyNotifier<StackTerminalState?, StackTerminalState?>,
+              StackTerminalState?,
               Object?,
               Object?
             >;

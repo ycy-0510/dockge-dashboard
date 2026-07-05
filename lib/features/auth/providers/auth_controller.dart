@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dockge_dashboard/core/network/dockge_client.dart';
-import 'package:dockge_dashboard/core/providers/error_notifier.dart';
+import 'package:dockge_dashboard/core/providers/toast_notifier.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
 import 'package:dockge_dashboard/core/storage/secure_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -94,7 +94,7 @@ class AuthController extends _$AuthController {
     final socket = connected ? ref.read(dockgeClientProvider).socket : null;
     if (socket == null) {
       state = state.copyWith(loginStatus: .unauthenticated);
-      ref.read(errorProvider.notifier).show("Connection error");
+      ref.read(toastProvider.notifier).showError(message: "Connection error");
       return;
     }
 
@@ -108,14 +108,14 @@ class AuthController extends _$AuthController {
           if (err != null) {
             if (!ref.mounted) return;
             state = state.copyWith(loginStatus: .unauthenticated);
-            ref.read(errorProvider.notifier).show("Time out");
+            ref.read(toastProvider.notifier).showError(message: "Time out");
           } else if (res is Map && res["ok"] == true) {
             await onSuccess(res);
           } else {
             final msg = res is Map ? res["msg"]?.toString() : res?.toString();
             if (!ref.mounted) return;
             state = state.copyWith(loginStatus: .unauthenticated);
-            ref.read(errorProvider.notifier).show(msg ?? "Login failed");
+            ref.read(toastProvider.notifier).showError(message: msg ?? "Login failed");
           }
         } finally {
           if (!completer.isCompleted) completer.complete();

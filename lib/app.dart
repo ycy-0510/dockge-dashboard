@@ -1,5 +1,5 @@
 import 'package:dockge_dashboard/core/network/dockge_client.dart';
-import 'package:dockge_dashboard/core/providers/error_notifier.dart';
+import 'package:dockge_dashboard/core/providers/toast_notifier.dart';
 import 'package:dockge_dashboard/routing/app_router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +34,7 @@ class Application extends ConsumerWidget {
       builder: (_, child) => FTheme(
         data: theme,
         child: FToaster(
-          child: FTooltipGroup(child: _ErrorListener(child: child!)),
+          child: FTooltipGroup(child: _ToastListener(child: child!)),
         ),
       ),
       // You can also replace FScaffold with Material Scaffold.
@@ -43,18 +43,18 @@ class Application extends ConsumerWidget {
   }
 }
 
-class _ErrorListener extends ConsumerWidget {
+class _ToastListener extends ConsumerWidget {
   final Widget child;
-  const _ErrorListener({required this.child});
+  const _ToastListener({required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(errorProvider, (prev, next) {
+    ref.listen(toastProvider, (prev, next) {
       if (next != null) {
         showFToast(
           context: context,
-          icon: Icon(FLucideIcons.circleAlert),
-          title: Text("Error"),
+          icon: Icon(next.icon),
+          title: Text(next.title),
           description: Text(next.message),
         );
       }
