@@ -44,10 +44,9 @@ class DockgeClient extends _$DockgeClient with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (this.state.socket != null && this.state.endpoint != null) {
-        log("App resumed, forcing socket reconnect...");
-        final socket = this.state.socket!;
-        socket.disconnect();
+      final socket = this.state.socket;
+      if (socket != null && this.state.endpoint != null && !socket.connected) {
+        log("App resumed, socket disconnected, reconnecting...");
         socket.connect();
       }
     }

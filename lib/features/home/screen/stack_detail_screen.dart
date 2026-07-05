@@ -120,169 +120,164 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
-              child: FCard(
-                title: Row(
+              child: FCard.raw(
+                clipBehavior: .antiAlias,
+                child: Column(
+                  spacing: 5,
+                  crossAxisAlignment: .stretch,
                   children: [
-                    Text(ref.watch(stackDetailProvider)!.info!.name),
-                    Spacer(),
-                    FBadge(
-                      style: statusBadgeStyles(
-                        colors: context.theme.colors,
-                        typography: context.theme.typography,
-                        style: context.theme.style,
-                        touch: true,
-                      ).variants[stackStatusVariant(ref.watch(stackDetailProvider)!.info!.status)]!,
-                      child: Text(ref.watch(stackDetailProvider)!.info!.status.label),
-                    ),
-                    FPopoverMenu(
-                      control: .managed(controller: _controller),
-                      menuAnchor: .topRight,
-                      menu: [
-                        .group(
-                          divider: .indented,
-                          children: [
-                            .item(
-                              prefix: Icon(FLucideIcons.refreshCcw),
-                              title: Text("Restart"),
-                              onPress: () {
-                                HapticFeedback.lightImpact();
-                                _controller.hide();
-                              }, // TODO: implement
-                            ),
-                            .item(
-                              prefix: Icon(FLucideIcons.downloadCloud),
-                              title: Text("Update"),
-                              onPress: () async {
-                                HapticFeedback.lightImpact();
-                                _controller.hide();
-                                try {
-                                  final result = await ref
-                                      .read(localAuthProvider)
-                                      .authenticate(
-                                        localizedReason: 'Verify identity for admin access',
-                                      );
-                                  if (result) {
-                                    ref.read(stackDetailProvider.notifier).update();
-                                  }
-                                } on LocalAuthException catch (e) {
-                                  ref
-                                      .read(toastProvider.notifier)
-                                      .showError(message: e.description ?? e.toString());
-                                } catch (e) {
-                                  ref.read(toastProvider.notifier).showError(message: e.toString());
-                                }
-                              },
-                            ),
-                            .submenu(
-                              menuAnchor: .topCenter,
-                              itemAnchor: .center,
-                              prefix: Icon(FLucideIcons.square),
-                              title: Text("Stop"),
-                              submenu: [
-                                .group(
-                                  children: [
-                                    .item(
-                                      prefix: Icon(FLucideIcons.square),
-                                      title: Text("Stop"),
-                                      onPress: () {
-                                        HapticFeedback.lightImpact();
-                                        _controller.hide();
-                                      }, // TODO: implement
-                                    ),
-                                    .item(
-                                      prefix: Icon(FLucideIcons.square),
-                                      title: Text("Stop & Inactive"),
-                                      onPress: () {
-                                        HapticFeedback.lightImpact();
-                                        _controller.hide();
-                                      }, // TODO: implement
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        .group(
-                          divider: .indented,
-                          children: [
-                            .item(
-                              prefix: Icon(FLucideIcons.trash2),
-                              title: Text("Delete"),
-                              onPress: () {
-                                HapticFeedback.lightImpact();
-                                _controller.hide();
-                              }, // TODO: implement
-                              variant: .destructive,
-                            ),
-                          ],
-                        ),
-                      ],
-                      builder: (context, controller, child) => FButton.icon(
-                        size: .sm,
-                        variant: .ghost,
-                        child: Icon(FLucideIcons.moreVertical),
-                        onPress: () {
-                          HapticFeedback.lightImpact();
-                          controller.toggle();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                subtitle: Text(ref.watch(stackDetailProvider)!.info!.composeFileName),
-              ),
-            ),
-          ),
-        SliverToBoxAdapter(
-          child: AnimatedSwitcher(
-            duration: Duration(milliseconds: 300),
-            switchInCurve: Easing.standard,
-            switchOutCurve: Easing.standard,
-            transitionBuilder: (child, animation) {
-              return ScaleTransition(
-                scale: animation,
-                child: FadeTransition(opacity: animation, child: child),
-              );
-            },
-            child: (terminalState != null && terminalState.composeTerminal != null)
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Card.filled(
-                      key: ValueKey('show'),
-                      clipBehavior: .antiAlias,
-                      child: Column(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                      child: Row(
                         children: [
-                          Row(
-                            children: [
-                              Spacer(),
-                              Text('Compose Output'),
-                              Spacer(),
-                              FButton.icon(
-                                variant: .ghost,
-                                onPress: () {
-                                  HapticFeedback.lightImpact();
-                                  ref.read(stackTerminalProvider.notifier).closeComposeTerminal();
-                                },
-                                child: Icon(FLucideIcons.x),
+                          Text(
+                            ref.watch(stackDetailProvider)!.info!.name,
+                            style: context.theme.typography.display.lg.copyWith(
+                              fontWeight: .w500,
+                              color: context.theme.colors.foreground,
+                            ),
+                          ),
+                          Spacer(),
+                          FBadge(
+                            style:
+                                statusBadgeStyles(
+                                  colors: context.theme.colors,
+                                  typography: context.theme.typography,
+                                  style: context.theme.style,
+                                  touch: true,
+                                ).variants[stackStatusVariant(
+                                  ref.watch(stackDetailProvider)!.info!.status,
+                                )]!,
+                            child: Text(ref.watch(stackDetailProvider)!.info!.status.label),
+                          ),
+                          FPopoverMenu(
+                            control: .managed(controller: _controller),
+                            menuAnchor: .topRight,
+                            menu: [
+                              .group(
+                                divider: .indented,
+                                children: [
+                                  .item(
+                                    prefix: Icon(FLucideIcons.refreshCcw),
+                                    title: Text("Restart"),
+                                    onPress: () {
+                                      HapticFeedback.lightImpact();
+                                      _controller.hide();
+                                    }, // TODO: implement
+                                  ),
+                                  .item(
+                                    prefix: Icon(FLucideIcons.downloadCloud),
+                                    title: Text("Update"),
+                                    onPress: () async {
+                                      HapticFeedback.lightImpact();
+                                      _controller.hide();
+                                      try {
+                                        final result = await ref
+                                            .read(localAuthProvider)
+                                            .authenticate(
+                                              localizedReason: 'Verify identity for admin access',
+                                            );
+                                        if (result) {
+                                          ref.read(stackDetailProvider.notifier).update();
+                                        }
+                                      } on LocalAuthException catch (e) {
+                                        ref
+                                            .read(toastProvider.notifier)
+                                            .showError(message: e.description ?? e.toString());
+                                      } catch (e) {
+                                        ref
+                                            .read(toastProvider.notifier)
+                                            .showError(message: e.toString());
+                                      }
+                                    },
+                                  ),
+                                  .submenu(
+                                    menuAnchor: .topCenter,
+                                    itemAnchor: .center,
+                                    prefix: Icon(FLucideIcons.square),
+                                    title: Text("Stop"),
+                                    submenu: [
+                                      .group(
+                                        children: [
+                                          .item(
+                                            prefix: Icon(FLucideIcons.square),
+                                            title: Text("Stop"),
+                                            onPress: () {
+                                              HapticFeedback.lightImpact();
+                                              _controller.hide();
+                                            }, // TODO: implement
+                                          ),
+                                          .item(
+                                            prefix: Icon(FLucideIcons.square),
+                                            title: Text("Stop & Inactive"),
+                                            onPress: () {
+                                              HapticFeedback.lightImpact();
+                                              _controller.hide();
+                                            }, // TODO: implement
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              .group(
+                                divider: .indented,
+                                children: [
+                                  .item(
+                                    prefix: Icon(FLucideIcons.trash2),
+                                    title: Text("Delete"),
+                                    onPress: () {
+                                      HapticFeedback.lightImpact();
+                                      _controller.hide();
+                                    }, // TODO: implement
+                                    variant: .destructive,
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                          SizedBox(
-                            height: 200,
-                            child: TerminalView(
-                              terminalState.composeTerminal!,
-                              readOnly: true,
-                              padding: EdgeInsets.all(10),
+                            builder: (context, controller, child) => FButton.icon(
+                              size: .sm,
+                              variant: .ghost,
+                              child: Icon(FLucideIcons.moreVertical),
+                              onPress: () {
+                                HapticFeedback.lightImpact();
+                                controller.toggle();
+                              },
                             ),
                           ),
                         ],
                       ),
                     ),
-                  )
-                : null,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                      child: Text(
+                        ref.watch(stackDetailProvider)!.info!.composeFileName,
+                        style: context.theme.typography.body.sm.copyWith(
+                          color: context.theme.colors.mutedForeground,
+                        ),
+                      ),
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Easing.standard,
+                      alignment: Alignment.topCenter,
+                      child: (terminalState != null && terminalState.composeTerminal != null)
+                          ? SizedBox(
+                              height: 200,
+                              child: TerminalView(
+                                terminalState.composeTerminal!,
+                                readOnly: true,
+                                padding: EdgeInsets.all(10),
+                              ),
+                            )
+                          : SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.only(top: 5),
