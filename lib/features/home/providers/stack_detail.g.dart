@@ -41,7 +41,7 @@ final class StackDetailProvider
   }
 }
 
-String _$stackDetailHash() => r'bca1f532e28318346635957d356b69dca65f20e4';
+String _$stackDetailHash() => r'5e1a49628b1f3da714e6b68dc6ba93a904da9cd0';
 
 abstract class _$StackDetail extends $Notifier<StackDetailInfo?> {
   StackDetailInfo? build();
@@ -93,7 +93,7 @@ final class StackTerminalProvider
   }
 }
 
-String _$stackTerminalHash() => r'c773336ebaa900dc4c901d30d8d69701492ef80a';
+String _$stackTerminalHash() => r'02a729ffd85bcdb1567e767a012c35a04f4eb225';
 
 abstract class _$StackTerminal extends $Notifier<StackTerminalState?> {
   StackTerminalState? build();

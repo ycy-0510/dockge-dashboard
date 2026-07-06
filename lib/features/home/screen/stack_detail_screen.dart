@@ -130,14 +130,16 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
                       child: Row(
                         children: [
-                          Text(
-                            ref.watch(stackDetailProvider)!.info!.name,
-                            style: context.theme.typography.display.lg.copyWith(
-                              fontWeight: .w500,
-                              color: context.theme.colors.foreground,
+                          Expanded(
+                            child: Text(
+                              ref.watch(stackDetailProvider)!.info!.name,
+                              style: context.theme.typography.display.lg.copyWith(
+                                fontWeight: .w500,
+                                color: context.theme.colors.foreground,
+                              ),
+                              overflow: .ellipsis,
                             ),
                           ),
-                          Spacer(),
                           FBadge(
                             style:
                                 statusBadgeStyles(

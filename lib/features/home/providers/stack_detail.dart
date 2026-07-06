@@ -64,7 +64,7 @@ class StackDetail extends _$StackDetail {
         state = null;
         return;
       }
-
+      log(stackRes.toString(), name: 'serviceStatusList');
       List<ServiceInfo> services = [];
       YamlMap yamlData = loadYaml(stackRes['stack']['composeYAML']);
       YamlMap servicesRaw = yamlData['services'];
@@ -98,12 +98,9 @@ class StackDetail extends _$StackDetail {
   void update() async {
     try {
       final socket = ref.read(dockgeClientProvider).socket;
-      final result = await socket?.emitAgentAsync(
-        "",
-        "updateStack",
-        [state?.name],
-        timeout: const Duration(minutes: 10),
-      );
+      final result = await socket?.emitAgentAsync("", "updateStack", [
+        state?.name,
+      ], timeout: const Duration(minutes: 10));
       if (!ref.mounted) return;
       if (result['ok'] == true) {
         ref.read(toastProvider.notifier).showSuccess(message: result['msg'] ?? 'Stack updated!');

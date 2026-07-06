@@ -1,3 +1,4 @@
+import 'package:dockge_dashboard/core/utils/hash_color.dart';
 import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
 import 'package:dockge_dashboard/features/home/model/stack_info.dart';
 import 'package:dockge_dashboard/features/home/model/status.dart';
@@ -60,6 +61,42 @@ class HomePage extends ConsumerWidget {
 class HomeStackList extends ConsumerWidget {
   const HomeStackList({super.key});
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    StackInfo? stacks = ref.watch(stackListProvider);
+    if (stacks == null) {
+      return const Center(child: Text("No stacks found"));
+    }
+    final items = stacks.stackList.values;
+    final activeItem = items.where((item) => item.status == .active).toList();
+    final stoppedItem = items.where((item) => item.status != .active).toList();
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Wrap(
+              spacing: 10,
+              children: [
+                FBadge(variant: .secondary, child: Text('${activeItem.length} Active')),
+                FBadge(variant: .outline, child: Text('${stoppedItem.length} Stopped')),
+              ],
+            ),
+          ),
+        ),
+        StackListView(title: 'ACTIVE', items: activeItem, key: const ValueKey('active-section')),
+        StackListView(title: 'STOPPED', items: stoppedItem, key: const ValueKey('stopped-section')),
+        SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).padding.bottom)),
+      ],
+    );
+  }
+}
+
+class StackListView extends StatelessWidget {
+  const StackListView({super.key, required this.title, required this.items});
+  final String title;
+  final List<StackItem> items;
+
   Icon statusIcon(StackStatus status) {
     switch (status) {
       case .unknown:
@@ -76,19 +113,28 @@ class HomeStackList extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    StackInfo? stacks = ref.watch(stackListProvider);
-    if (stacks == null) {
-      return const Center(child: Text("No stacks found"));
-    }
-    final items = stacks.stackList.values.toList();
-    return ListView(
-      padding: EdgeInsets.only(bottom: 50),
-      children: [
-        FTileGroup.builder(
-          count: items.length,
-          tileBuilder: (context, idx) {
+  Widget build(BuildContext context) {
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 15, bottom: 5),
+            child: Text(
+              title,
+              style: context.theme.typography.display.xs.copyWith(
+                color: context.theme.colors.mutedForeground,
+              ),
+            ),
+          ),
+        ),
+        SliverList.separated(
+          itemCount: items.length,
+          itemBuilder: (context, idx) {
             final item = items[idx];
+            final (iconBackground, iconForeground) = HashColorGenerator.colorFor(
+              item.name,
+              Theme.of(context).brightness,
+            );
             return FTile(
               onPress: item.isManagedByDockge
                   ? () {
@@ -99,14 +145,20 @@ class HomeStackList extends ConsumerWidget {
                       );
                     }
                   : null,
-              prefix: statusIcon(item.status),
               title: Text(item.name),
+              prefix: Container(
+                padding: .all(5),
+                decoration: BoxDecoration(color: iconBackground, borderRadius: .circular(5)),
+                child: Icon(FLucideIcons.server, color: iconForeground),
+              ),
               subtitle: Text(
                 [item.status.label, if (item.isManagedByDockge) "Managed by Dockge"].join(" | "),
               ),
-              suffix: item.isManagedByDockge ? Icon(FLucideIcons.chevronRight) : null,
+              details: statusIcon(item.status),
+              suffix: Icon(item.isManagedByDockge ? FLucideIcons.chevronRight : null),
             );
           },
+          separatorBuilder: (BuildContext context, int index) => SizedBox(height: 20),
         ),
       ],
     );

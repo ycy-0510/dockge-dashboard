@@ -90,6 +90,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                   inputFormatters: [],
                   autovalidateMode: .onUserInteraction,
                   validator: validateUrl,
+                  autocorrect: false,
                 ),
                 FTextFormField(
                   autofillHints: const [AutofillHints.username],
