@@ -95,21 +95,29 @@ class StackDetail extends _$StackDetail {
     }
   }
 
-  void update() async {
+  /// Runs a Dockge agent action for the current stack and reports the result.
+  ///
+  /// [event] is the Dockge socket event (e.g. `startStack`); [successMsg] and
+  /// [failMsg] are the fallback toasts when the server does not send its own.
+  /// When [refetch] is true the stack details are reloaded afterwards.
+  Future<void> _runStackAction({
+    required String event,
+    required String successMsg,
+    required String failMsg,
+    bool refetch = true,
+  }) async {
     try {
       final socket = ref.read(dockgeClientProvider).socket;
-      final result = await socket?.emitAgentAsync("", "updateStack", [
+      final result = await socket?.emitAgentAsync("", event, [
         state?.name,
       ], timeout: const Duration(minutes: 10));
       if (!ref.mounted) return;
       if (result['ok'] == true) {
-        ref.read(toastProvider.notifier).showSuccess(message: result['msg'] ?? 'Stack updated!');
+        ref.read(toastProvider.notifier).showSuccess(message: result['msg'] ?? successMsg);
       } else {
-        ref
-            .read(toastProvider.notifier)
-            .showError(message: result['msg'] ?? 'Failed to update stack.');
+        ref.read(toastProvider.notifier).showError(message: result['msg'] ?? failMsg);
       }
-      fetch();
+      if (refetch) fetch();
     } catch (error) {
       log(error.toString(), name: 'StackDetail');
       if (!ref.mounted) return;
@@ -117,6 +125,43 @@ class StackDetail extends _$StackDetail {
       state = null;
     }
   }
+
+  Future<void> update() => _runStackAction(
+    event: 'updateStack',
+    successMsg: 'Stack updated!',
+    failMsg: 'Failed to update the stack.',
+  );
+
+  Future<void> restart() => _runStackAction(
+    event: 'restartStack',
+    successMsg: 'Stack restarted!',
+    failMsg: 'Failed to restart the stack.',
+  );
+
+  Future<void> start() => _runStackAction(
+    event: 'startStack',
+    successMsg: 'Stack started!',
+    failMsg: 'Failed to start the stack.',
+  );
+
+  Future<void> stop() => _runStackAction(
+    event: 'stopStack',
+    successMsg: 'Stack stopped!',
+    failMsg: 'Failed to stop the stack.',
+  );
+
+  Future<void> down() => _runStackAction(
+    event: 'downStack',
+    successMsg: 'Stack downed!',
+    failMsg: 'Failed to down the stack.',
+  );
+
+  Future<void> delete() => _runStackAction(
+    event: 'deleteStack',
+    successMsg: 'Stack deleted!',
+    failMsg: 'Failed to delete the stack.',
+    refetch: false,
+  );
 }
 
 @riverpod

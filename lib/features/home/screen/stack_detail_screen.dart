@@ -34,6 +34,12 @@ class _StackDetailPageState extends ConsumerState<StackDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(stackDetailProvider, (prev, next) {
+      if (prev?.info != null && next?.info == null) {
+        context.pop();
+      }
+    });
+
     ref.watch(stackDetailProvider);
     ref.watch(stackTerminalProvider);
     return FScaffold(
@@ -93,6 +99,34 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
     super.dispose();
   }
 
+  Future<void> _authGuard(Future<void> Function() action) async {
+    try {
+      final result = await ref
+          .read(localAuthProvider)
+          .authenticate(localizedReason: 'Verify identity for admin access');
+      if (result) {
+        await action();
+      }
+    } on LocalAuthException catch (e) {
+      ref.read(toastProvider.notifier).showError(message: e.description ?? e.toString());
+    } catch (e) {
+      ref.read(toastProvider.notifier).showError(message: e.toString());
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final stackName = ref.read(stackDetailProvider)?.name;
+    if (stackName == null) return;
+    final confirmed = await showFSheet<bool>(
+      context: context,
+      side: FLayout.btt,
+      useSafeArea: true,
+      builder: (context) => _DeleteConfirmSheet(stackName: stackName),
+    );
+    if (confirmed != true) return;
+    await _authGuard(() => ref.read(stackDetailProvider.notifier).delete());
+  }
+
   FBadgeVariantConstraint serviceStatusVariant(String status) {
     if (status == 'running' || status == 'healthy') return .primary;
     if (status == 'unhealthy') return .destructive;
@@ -102,7 +136,7 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
   FBadgeVariantConstraint stackStatusVariant(StackStatus status) {
     if (status == .active) return .primary;
     if (status == .exited) return .destructive;
-    if (status == .deploying || status == .inactive) return .destructive;
+    if (status == .deploying || status == .inactive) return .secondary;
     return .outline;
   }
 
@@ -113,10 +147,11 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
       return Center(child: Text("No details info"));
     }
     final terminalState = ref.watch(stackTerminalProvider);
+    final info = detailInfo.info;
 
     return CustomScrollView(
       slivers: [
-        if (ref.watch(stackDetailProvider)?.info != null)
+        if (info != null)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
@@ -132,7 +167,7 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
                         children: [
                           Expanded(
                             child: Text(
-                              ref.watch(stackDetailProvider)!.info!.name,
+                              info.name,
                               style: context.theme.typography.display.lg.copyWith(
                                 fontWeight: .w500,
                                 color: context.theme.colors.foreground,
@@ -141,16 +176,13 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
                             ),
                           ),
                           FBadge(
-                            style:
-                                statusBadgeStyles(
-                                  colors: context.theme.colors,
-                                  typography: context.theme.typography,
-                                  style: context.theme.style,
-                                  touch: true,
-                                ).variants[stackStatusVariant(
-                                  ref.watch(stackDetailProvider)!.info!.status,
-                                )]!,
-                            child: Text(ref.watch(stackDetailProvider)!.info!.status.label),
+                            style: statusBadgeStyles(
+                              colors: context.theme.colors,
+                              typography: context.theme.typography,
+                              style: context.theme.style,
+                              touch: true,
+                            ).variants[stackStatusVariant(info.status)]!,
+                            child: Text(info.status.label),
                           ),
                           FPopoverMenu(
                             control: .managed(controller: _controller),
@@ -159,68 +191,80 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
                               .group(
                                 divider: .indented,
                                 children: [
-                                  .item(
-                                    prefix: Icon(FLucideIcons.refreshCcw),
-                                    title: Text("Restart"),
-                                    onPress: () {
-                                      HapticFeedback.lightImpact();
-                                      _controller.hide();
-                                    }, // TODO: implement
-                                  ),
+                                  if (info.status != .active)
+                                    .item(
+                                      prefix: Icon(FLucideIcons.play),
+                                      title: Text("Start"),
+                                      onPress: () {
+                                        HapticFeedback.lightImpact();
+                                        _controller.hide();
+                                        _authGuard(
+                                          () => ref.read(stackDetailProvider.notifier).start(),
+                                        );
+                                      },
+                                    ),
+                                  if (info.status == .active)
+                                    .item(
+                                      prefix: Icon(FLucideIcons.refreshCcw),
+                                      title: Text("Restart"),
+                                      onPress: () {
+                                        HapticFeedback.lightImpact();
+                                        _controller.hide();
+                                        _authGuard(
+                                          () => ref.read(stackDetailProvider.notifier).restart(),
+                                        );
+                                      },
+                                    ),
                                   .item(
                                     prefix: Icon(FLucideIcons.downloadCloud),
                                     title: Text("Update"),
-                                    onPress: () async {
+                                    onPress: () {
                                       HapticFeedback.lightImpact();
                                       _controller.hide();
-                                      try {
-                                        final result = await ref
-                                            .read(localAuthProvider)
-                                            .authenticate(
-                                              localizedReason: 'Verify identity for admin access',
-                                            );
-                                        if (result) {
-                                          ref.read(stackDetailProvider.notifier).update();
-                                        }
-                                      } on LocalAuthException catch (e) {
-                                        ref
-                                            .read(toastProvider.notifier)
-                                            .showError(message: e.description ?? e.toString());
-                                      } catch (e) {
-                                        ref
-                                            .read(toastProvider.notifier)
-                                            .showError(message: e.toString());
-                                      }
+                                      _authGuard(
+                                        () => ref.read(stackDetailProvider.notifier).update(),
+                                      );
                                     },
                                   ),
-                                  .submenu(
-                                    menuAnchor: .topCenter,
-                                    itemAnchor: .center,
-                                    prefix: Icon(FLucideIcons.square),
-                                    title: Text("Stop"),
-                                    submenu: [
-                                      .group(
-                                        children: [
-                                          .item(
-                                            prefix: Icon(FLucideIcons.square),
-                                            title: Text("Stop"),
-                                            onPress: () {
-                                              HapticFeedback.lightImpact();
-                                              _controller.hide();
-                                            }, // TODO: implement
-                                          ),
-                                          .item(
-                                            prefix: Icon(FLucideIcons.square),
-                                            title: Text("Stop & Inactive"),
-                                            onPress: () {
-                                              HapticFeedback.lightImpact();
-                                              _controller.hide();
-                                            }, // TODO: implement
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                  if (info.status != .inactive)
+                                    .submenu(
+                                      menuAnchor: .topCenter,
+                                      itemAnchor: .center,
+                                      prefix: Icon(FLucideIcons.square),
+                                      title: Text("Stop"),
+                                      submenu: [
+                                        .group(
+                                          children: [
+                                            if (info.status == .active)
+                                              .item(
+                                                prefix: Icon(FLucideIcons.square),
+                                                title: Text("Stop"),
+                                                onPress: () {
+                                                  HapticFeedback.lightImpact();
+                                                  _controller.hide();
+                                                  _authGuard(
+                                                    () => ref
+                                                        .read(stackDetailProvider.notifier)
+                                                        .stop(),
+                                                  );
+                                                },
+                                              ),
+                                            .item(
+                                              prefix: Icon(FLucideIcons.square),
+                                              title: Text("Stop & Inactive"),
+                                              onPress: () {
+                                                HapticFeedback.lightImpact();
+                                                _controller.hide();
+                                                _authGuard(
+                                                  () =>
+                                                      ref.read(stackDetailProvider.notifier).down(),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                 ],
                               ),
                               .group(
@@ -230,9 +274,10 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
                                     prefix: Icon(FLucideIcons.trash2),
                                     title: Text("Delete"),
                                     onPress: () {
-                                      HapticFeedback.lightImpact();
+                                      HapticFeedback.heavyImpact();
                                       _controller.hide();
-                                    }, // TODO: implement
+                                      _confirmDelete();
+                                    },
                                     variant: .destructive,
                                   ),
                                 ],
@@ -254,7 +299,7 @@ class _StackDetailServicesState extends ConsumerState<StackDetailServices>
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                       child: Text(
-                        ref.watch(stackDetailProvider)!.info!.composeFileName,
+                        info.composeFileName,
                         style: context.theme.typography.body.sm.copyWith(
                           color: context.theme.colors.mutedForeground,
                         ),
@@ -359,5 +404,105 @@ class StackDetailTerminal extends ConsumerWidget {
       return Center(child: FCircularProgress(size: .xl));
     }
     return TerminalView(state.combinedTerminal, readOnly: true, padding: EdgeInsets.all(10));
+  }
+}
+
+class _DeleteConfirmSheet extends StatefulWidget {
+  final String stackName;
+  const _DeleteConfirmSheet({required this.stackName});
+
+  @override
+  State<_DeleteConfirmSheet> createState() => _DeleteConfirmSheetState();
+}
+
+class _DeleteConfirmSheetState extends State<_DeleteConfirmSheet> {
+  final _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final matches = _controller.text.trim() == widget.stackName;
+    const margin = 15.0;
+    final screenRadii = MediaQuery.displayCornerRadiiOf(context) ?? BorderRadius.circular(60);
+    double inset(Radius r) => (r.x - margin).clamp(0.0, double.infinity);
+    final radius = BorderRadius.only(
+      topLeft: Radius.circular(inset(screenRadii.topLeft)),
+      topRight: Radius.circular(inset(screenRadii.topRight)),
+      bottomLeft: Radius.circular(inset(screenRadii.bottomLeft)),
+      bottomRight: Radius.circular(inset(screenRadii.bottomRight)),
+    );
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        color: context.theme.colors.background,
+        border: .all(color: context.theme.colors.border),
+      ),
+      margin: const .all(margin),
+      padding: EdgeInsets.all(25),
+      child: Column(
+        mainAxisSize: .min,
+        crossAxisAlignment: .stretch,
+        spacing: 12,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Delete stack',
+                style: context.theme.typography.display.lg.copyWith(
+                  fontWeight: .w600,
+                  color: context.theme.colors.foreground,
+                ),
+              ),
+              Spacer(),
+              FButton.icon(
+                variant: .outline,
+                onPress: () => Navigator.of(context).pop(false),
+                child: const Icon(FLucideIcons.x),
+              ),
+            ],
+          ),
+          Text.rich(
+            TextSpan(
+              children: [
+                const TextSpan(text: 'This permanently deletes the stack and its files. Type '),
+                TextSpan(
+                  text: widget.stackName,
+                  style: TextStyle(fontWeight: .w600, color: context.theme.colors.foreground),
+                ),
+                const TextSpan(text: ' to confirm.'),
+              ],
+            ),
+            style: context.theme.typography.body.sm.copyWith(
+              color: context.theme.colors.mutedForeground,
+            ),
+          ),
+          FTextField(
+            control: .managed(controller: _controller),
+            hint: widget.stackName,
+            autocorrect: false,
+            enableSuggestions: false,
+            textInputAction: .done,
+            autofocus: true,
+            onSubmit: matches ? (_) => Navigator.of(context).pop(true) : null,
+          ),
+          FButton(
+            variant: .destructive,
+            onPress: matches ? () => Navigator.of(context).pop(true) : null,
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 }
