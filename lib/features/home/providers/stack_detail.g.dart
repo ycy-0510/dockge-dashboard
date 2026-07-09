@@ -41,7 +41,7 @@ final class StackDetailProvider
   }
 }
 
-String _$stackDetailHash() => r'5e1a49628b1f3da714e6b68dc6ba93a904da9cd0';
+String _$stackDetailHash() => r'2aae4266e4670d146dbcb6c2006292cfda70a6fc';
 
 abstract class _$StackDetail extends $Notifier<StackDetailInfo?> {
   StackDetailInfo? build();

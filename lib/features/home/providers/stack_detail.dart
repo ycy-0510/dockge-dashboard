@@ -83,7 +83,14 @@ class StackDetail extends _$StackDetail {
         );
       }
       StackItem? info = ref.read(stackListProvider)?.stackList[stackName];
-      state = StackDetailInfo(name: stackName, info: info, services: services);
+      state = StackDetailInfo(
+        name: stackName,
+        info: info,
+        services: services,
+        composeFileName: stackRes['stack']['composeFileName'],
+        composeYAML: stackRes['stack']['composeYAML'],
+        composeENV: stackRes['stack']['composeENV'],
+      );
       ref.listen(stackListProvider, (prev, next) {
         state = state?.copyWith(info: next?.stackList[stackName]);
       });
@@ -105,11 +112,15 @@ class StackDetail extends _$StackDetail {
     required String successMsg,
     required String failMsg,
     bool refetch = true,
+    List<dynamic> option = const [],
+    String? overrideName,
+    Function(bool isOk)? callback,
   }) async {
     try {
       final socket = ref.read(dockgeClientProvider).socket;
       final result = await socket?.emitAgentAsync("", event, [
-        state?.name,
+        overrideName ?? state?.name,
+        ...option,
       ], timeout: const Duration(minutes: 10));
       if (!ref.mounted) return;
       if (result['ok'] == true) {
@@ -117,6 +128,7 @@ class StackDetail extends _$StackDetail {
       } else {
         ref.read(toastProvider.notifier).showError(message: result['msg'] ?? failMsg);
       }
+      if (callback != null) callback(result['ok'] == true);
       if (refetch) fetch();
     } catch (error) {
       log(error.toString(), name: 'StackDetail');
@@ -154,6 +166,38 @@ class StackDetail extends _$StackDetail {
     event: 'downStack',
     successMsg: 'Stack downed!',
     failMsg: 'Failed to down the stack.',
+  );
+
+  Future<void> save({
+    required String composeYAML,
+    required String composeENV,
+    required bool isAdd,
+    String? stackName,
+    required Function(bool isOk) callback,
+  }) => _runStackAction(
+    event: 'saveStack',
+    successMsg: 'Stack saved!',
+    failMsg: 'Failed to save the stack.',
+    option: [composeYAML, composeENV, isAdd],
+    overrideName: stackName,
+    refetch: !isAdd,
+    callback: callback,
+  );
+
+  Future<void> deploy({
+    required String composeYAML,
+    required String composeENV,
+    required bool isAdd,
+    String? stackName,
+    required Function(bool isOk) callback,
+  }) => _runStackAction(
+    event: 'deployStack',
+    successMsg: 'Stack deployed!',
+    failMsg: 'Failed to deploy the stack.',
+    option: [composeYAML, composeENV, isAdd],
+    overrideName: stackName,
+    refetch: !isAdd,
+    callback: callback,
   );
 
   Future<void> delete() => _runStackAction(

@@ -3,6 +3,7 @@ import 'package:dockge_dashboard/features/auth/providers/local_auth.dart';
 import 'package:dockge_dashboard/features/home/model/stack_detail_info.dart';
 import 'package:dockge_dashboard/features/home/model/status.dart';
 import 'package:dockge_dashboard/features/home/providers/stack_detail.dart';
+import 'package:dockge_dashboard/routing/routes.dart';
 import 'package:dockge_dashboard/theme/styles/badge_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,6 +33,21 @@ class _StackDetailPageState extends ConsumerState<StackDetailPage> {
     });
   }
 
+  Future<void> _authGuard(Future<void> Function() action) async {
+    try {
+      final result = await ref
+          .read(localAuthProvider)
+          .authenticate(localizedReason: 'Verify identity for admin access');
+      if (result) {
+        await action();
+      }
+    } on LocalAuthException catch (e) {
+      ref.read(toastProvider.notifier).showError(message: e.description ?? e.toString());
+    } catch (e) {
+      ref.read(toastProvider.notifier).showError(message: e.toString());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(stackDetailProvider, (prev, next) {
@@ -58,9 +74,15 @@ class _StackDetailPageState extends ConsumerState<StackDetailPage> {
           FHeaderAction(
             icon: Icon(FLucideIcons.edit),
             onPress: () {
-              HapticFeedback.lightImpact();
+              HapticFeedback.mediumImpact();
+              _authGuard(
+                () => context.pushNamed(
+                  AppRouteName.stackEdit,
+                  pathParameters: {'name': widget.stackName},
+                ),
+              );
             },
-          ), // TODO: implement edit
+          ),
         ],
       ),
       footer: FBottomNavigationBar(

@@ -10,6 +10,9 @@ abstract class StackDetailInfo with _$StackDetailInfo {
     required String name,
     required StackItem? info,
     required List<ServiceInfo> services,
+    required String composeFileName,
+    required String composeYAML,
+    required String composeENV,
   }) = _StackDetailInfo;
 }
 

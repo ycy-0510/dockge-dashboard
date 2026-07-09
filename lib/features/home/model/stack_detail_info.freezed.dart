@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StackDetailInfo {
 
- String get name; StackItem? get info; List<ServiceInfo> get services;
+ String get name; StackItem? get info; List<ServiceInfo> get services; String get composeFileName; String get composeYAML; String get composeENV;
 /// Create a copy of StackDetailInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $StackDetailInfoCopyWith<StackDetailInfo> get copyWith => _$StackDetailInfoCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StackDetailInfo&&(identical(other.name, name) || other.name == name)&&(identical(other.info, info) || other.info == info)&&const DeepCollectionEquality().equals(other.services, services));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StackDetailInfo&&(identical(other.name, name) || other.name == name)&&(identical(other.info, info) || other.info == info)&&const DeepCollectionEquality().equals(other.services, services)&&(identical(other.composeFileName, composeFileName) || other.composeFileName == composeFileName)&&(identical(other.composeYAML, composeYAML) || other.composeYAML == composeYAML)&&(identical(other.composeENV, composeENV) || other.composeENV == composeENV));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,info,const DeepCollectionEquality().hash(services));
+int get hashCode => Object.hash(runtimeType,name,info,const DeepCollectionEquality().hash(services),composeFileName,composeYAML,composeENV);
 
 @override
 String toString() {
-  return 'StackDetailInfo(name: $name, info: $info, services: $services)';
+  return 'StackDetailInfo(name: $name, info: $info, services: $services, composeFileName: $composeFileName, composeYAML: $composeYAML, composeENV: $composeENV)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $StackDetailInfoCopyWith<$Res>  {
   factory $StackDetailInfoCopyWith(StackDetailInfo value, $Res Function(StackDetailInfo) _then) = _$StackDetailInfoCopyWithImpl;
 @useResult
 $Res call({
- String name, StackItem? info, List<ServiceInfo> services
+ String name, StackItem? info, List<ServiceInfo> services, String composeFileName, String composeYAML, String composeENV
 });
 
 
@@ -62,12 +62,15 @@ class _$StackDetailInfoCopyWithImpl<$Res>
 
 /// Create a copy of StackDetailInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? info = freezed,Object? services = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? info = freezed,Object? services = null,Object? composeFileName = null,Object? composeYAML = null,Object? composeENV = null,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,info: freezed == info ? _self.info : info // ignore: cast_nullable_to_non_nullable
 as StackItem?,services: null == services ? _self.services : services // ignore: cast_nullable_to_non_nullable
-as List<ServiceInfo>,
+as List<ServiceInfo>,composeFileName: null == composeFileName ? _self.composeFileName : composeFileName // ignore: cast_nullable_to_non_nullable
+as String,composeYAML: null == composeYAML ? _self.composeYAML : composeYAML // ignore: cast_nullable_to_non_nullable
+as String,composeENV: null == composeENV ? _self.composeENV : composeENV // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 /// Create a copy of StackDetailInfo
@@ -164,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  StackItem? info,  List<ServiceInfo> services)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  StackItem? info,  List<ServiceInfo> services,  String composeFileName,  String composeYAML,  String composeENV)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StackDetailInfo() when $default != null:
-return $default(_that.name,_that.info,_that.services);case _:
+return $default(_that.name,_that.info,_that.services,_that.composeFileName,_that.composeYAML,_that.composeENV);case _:
   return orElse();
 
 }
@@ -185,10 +188,10 @@ return $default(_that.name,_that.info,_that.services);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  StackItem? info,  List<ServiceInfo> services)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  StackItem? info,  List<ServiceInfo> services,  String composeFileName,  String composeYAML,  String composeENV)  $default,) {final _that = this;
 switch (_that) {
 case _StackDetailInfo():
-return $default(_that.name,_that.info,_that.services);case _:
+return $default(_that.name,_that.info,_that.services,_that.composeFileName,_that.composeYAML,_that.composeENV);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +208,10 @@ return $default(_that.name,_that.info,_that.services);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  StackItem? info,  List<ServiceInfo> services)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  StackItem? info,  List<ServiceInfo> services,  String composeFileName,  String composeYAML,  String composeENV)?  $default,) {final _that = this;
 switch (_that) {
 case _StackDetailInfo() when $default != null:
-return $default(_that.name,_that.info,_that.services);case _:
+return $default(_that.name,_that.info,_that.services,_that.composeFileName,_that.composeYAML,_that.composeENV);case _:
   return null;
 
 }
@@ -220,7 +223,7 @@ return $default(_that.name,_that.info,_that.services);case _:
 
 
 class _StackDetailInfo implements StackDetailInfo {
-  const _StackDetailInfo({required this.name, required this.info, required final  List<ServiceInfo> services}): _services = services;
+  const _StackDetailInfo({required this.name, required this.info, required final  List<ServiceInfo> services, required this.composeFileName, required this.composeYAML, required this.composeENV}): _services = services;
   
 
 @override final  String name;
@@ -232,6 +235,9 @@ class _StackDetailInfo implements StackDetailInfo {
   return EqualUnmodifiableListView(_services);
 }
 
+@override final  String composeFileName;
+@override final  String composeYAML;
+@override final  String composeENV;
 
 /// Create a copy of StackDetailInfo
 /// with the given fields replaced by the non-null parameter values.
@@ -243,16 +249,16 @@ _$StackDetailInfoCopyWith<_StackDetailInfo> get copyWith => __$StackDetailInfoCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StackDetailInfo&&(identical(other.name, name) || other.name == name)&&(identical(other.info, info) || other.info == info)&&const DeepCollectionEquality().equals(other._services, _services));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StackDetailInfo&&(identical(other.name, name) || other.name == name)&&(identical(other.info, info) || other.info == info)&&const DeepCollectionEquality().equals(other._services, _services)&&(identical(other.composeFileName, composeFileName) || other.composeFileName == composeFileName)&&(identical(other.composeYAML, composeYAML) || other.composeYAML == composeYAML)&&(identical(other.composeENV, composeENV) || other.composeENV == composeENV));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,info,const DeepCollectionEquality().hash(_services));
+int get hashCode => Object.hash(runtimeType,name,info,const DeepCollectionEquality().hash(_services),composeFileName,composeYAML,composeENV);
 
 @override
 String toString() {
-  return 'StackDetailInfo(name: $name, info: $info, services: $services)';
+  return 'StackDetailInfo(name: $name, info: $info, services: $services, composeFileName: $composeFileName, composeYAML: $composeYAML, composeENV: $composeENV)';
 }
 
 
@@ -263,7 +269,7 @@ abstract mixin class _$StackDetailInfoCopyWith<$Res> implements $StackDetailInfo
   factory _$StackDetailInfoCopyWith(_StackDetailInfo value, $Res Function(_StackDetailInfo) _then) = __$StackDetailInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String name, StackItem? info, List<ServiceInfo> services
+ String name, StackItem? info, List<ServiceInfo> services, String composeFileName, String composeYAML, String composeENV
 });
 
 
@@ -280,12 +286,15 @@ class __$StackDetailInfoCopyWithImpl<$Res>
 
 /// Create a copy of StackDetailInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? info = freezed,Object? services = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? info = freezed,Object? services = null,Object? composeFileName = null,Object? composeYAML = null,Object? composeENV = null,}) {
   return _then(_StackDetailInfo(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,info: freezed == info ? _self.info : info // ignore: cast_nullable_to_non_nullable
 as StackItem?,services: null == services ? _self._services : services // ignore: cast_nullable_to_non_nullable
-as List<ServiceInfo>,
+as List<ServiceInfo>,composeFileName: null == composeFileName ? _self.composeFileName : composeFileName // ignore: cast_nullable_to_non_nullable
+as String,composeYAML: null == composeYAML ? _self.composeYAML : composeYAML // ignore: cast_nullable_to_non_nullable
+as String,composeENV: null == composeENV ? _self.composeENV : composeENV // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

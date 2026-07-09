@@ -19,6 +19,14 @@ class HomePage extends ConsumerWidget {
       header: FHeader(
         title: Text("Home"),
         suffixes: [
+          FHeaderAction(
+            icon: Icon(FLucideIcons.plus),
+            onPress: () {
+              HapticFeedback.lightImpact();
+              context.pushNamed(AppRouteName.stackNew);
+            },
+          ),
+          SizedBox(width: 10),
           FAvatar.raw(
             child: Text((ref.watch(authControllerProvider).username ?? "U").toUpperCase()[0]),
           ),
