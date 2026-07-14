@@ -1,12 +1,12 @@
 import 'dart:developer';
 
-import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
-import 'package:dockge_dashboard/features/auth/screen/login_screen.dart';
-import 'package:dockge_dashboard/features/home/screen/composerize_screen.dart';
-import 'package:dockge_dashboard/features/home/screen/home_screen.dart';
-import 'package:dockge_dashboard/features/home/screen/stack_detail_screen.dart';
-import 'package:dockge_dashboard/features/home/screen/stack_edit_screen.dart';
 import 'package:dockge_dashboard/routing/routes.dart';
+import 'package:dockge_dashboard/ui/features/auth/view_models/auth_view_model.dart';
+import 'package:dockge_dashboard/ui/features/auth/views/login_page.dart';
+import 'package:dockge_dashboard/ui/features/composerize/views/composerize_page.dart';
+import 'package:dockge_dashboard/ui/features/dashboard/views/dashboard_page.dart';
+import 'package:dockge_dashboard/ui/features/stacks/views/stack_detail_page.dart';
+import 'package:dockge_dashboard/ui/features/stacks/views/stack_edit_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -15,7 +15,7 @@ import 'package:flutter/widgets.dart';
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
   RouterNotifier(this._ref) {
-    _ref.listen(authControllerProvider, (_, _) => notifyListeners());
+    _ref.listen(authViewModelProvider, (_, _) => notifyListeners());
   }
 }
 
@@ -26,7 +26,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutePath.login,
     refreshListenable: notifier,
     redirect: (context, state) {
-      final status = ref.read(authControllerProvider).loginStatus;
+      final status = ref.read(authViewModelProvider).loginStatus;
       final isLoginRoute = state.matchedLocation == AppRoutePath.login;
 
       // When the app launches, the path might be '/' or '/login'.
@@ -52,7 +52,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutePath.home,
         name: AppRouteName.home,
-        builder: (context, state) => HomePage(),
+        builder: (context, state) => DashboardPage(),
       ),
       GoRoute(
         path: AppRoutePath.composerize,

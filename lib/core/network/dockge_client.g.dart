@@ -12,8 +12,7 @@ part of 'dockge_client.dart';
 @ProviderFor(DockgeClient)
 final dockgeClientProvider = DockgeClientProvider._();
 
-final class DockgeClientProvider
-    extends $NotifierProvider<DockgeClient, DockgeClientState> {
+final class DockgeClientProvider extends $NotifierProvider<DockgeClient, DockgeClientState> {
   DockgeClientProvider._()
     : super(
         from: null,
@@ -41,7 +40,7 @@ final class DockgeClientProvider
   }
 }
 
-String _$dockgeClientHash() => r'7eabc75fb6be2d26e831611c3353fd18c550da6a';
+String _$dockgeClientHash() => r'01e67ec1fc357b4d5e7cee7a33139ef4799eccb6';
 
 abstract class _$DockgeClient extends $Notifier<DockgeClientState> {
   DockgeClientState build();

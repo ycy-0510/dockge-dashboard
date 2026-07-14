@@ -9,6 +9,9 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
 
   runApp(
-    ProviderScope(overrides: [prefsProvider.overrideWithValue(prefs)], child: const Application()),
+    ProviderScope(
+      overrides: [prefsProvider.overrideWithValue(prefs)],
+      child: const DockgeDashboardApp(),
+    ),
   );
 }

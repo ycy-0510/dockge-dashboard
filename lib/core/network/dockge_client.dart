@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 
-import 'package:dockge_dashboard/core/providers/toast_notifier.dart';
+import 'package:dockge_dashboard/ui/core/view_models/toast_notifier.dart';
 import 'package:dockge_dashboard/core/storage/prefs.dart';
-import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -34,7 +32,7 @@ class DockgeClient extends _$DockgeClient with WidgetsBindingObserver {
       WidgetsBinding.instance.removeObserver(this);
     });
 
-    String? endpoint = ref.read(prefsProvider).getString(PrefsKey.endpoint);
+    final endpoint = ref.read(prefsStoreProvider).readEndpoint();
     if (endpoint != null) {
       Future(() => connect(endpoint: endpoint));
     }
@@ -54,8 +52,11 @@ class DockgeClient extends _$DockgeClient with WidgetsBindingObserver {
 
   Completer<bool> _connected = Completer<bool>();
 
-  Future<bool> waitForConnect() async {
-    return _connected.future;
+  Future<bool> waitForConnect({
+    Duration timeout = const Duration(seconds: 20),
+  }) {
+    if (state.status == SocketStatus.connected) return Future.value(true);
+    return _connected.future.timeout(timeout, onTimeout: () => false);
   }
 
   void connect({required String endpoint}) {
@@ -80,48 +81,41 @@ class DockgeClient extends _$DockgeClient with WidgetsBindingObserver {
     );
     state = state.copyWith(socket: socket);
 
-    socket.onConnect((_) {
+    socket.onConnect((Object? _) {
       state = state.copyWith(status: SocketStatus.connected);
       if (!_connected.isCompleted) {
         _connected.complete(true);
       }
-      final loginStatus = ref.read(authControllerProvider).loginStatus;
-      if (loginStatus == LoginStatus.loading || loginStatus == LoginStatus.authenticated) {
-        ref.read(authControllerProvider.notifier).loginWithToken();
-      }
     });
 
-    socket.onConnectError((error) {
+    socket.onConnectError((Object? error) {
       state = state.copyWith(status: SocketStatus.disconnected);
       ref.read(toastProvider.notifier).showError(message: error.toString());
       if (!_connected.isCompleted) {
         _connected.complete(false);
         _connected = Completer<bool>();
       }
-      if (ref.read(authControllerProvider).loginStatus == LoginStatus.loading) {
-        ref.read(authControllerProvider.notifier).setUnauthenticated();
-      }
     });
 
-    socket.onDisconnect((_) {
+    socket.onDisconnect((Object? _) {
       state = state.copyWith(status: .disconnected);
       _connected = Completer<bool>();
     });
 
-    socket.onError((error) {
+    socket.onError((Object? error) {
       state = state.copyWith(status: .disconnected);
       ref.read(toastProvider.notifier).showError(message: error.toString());
-      if (ref.read(authControllerProvider).loginStatus == LoginStatus.loading) {
-        ref.read(authControllerProvider.notifier).setUnauthenticated();
-      }
     });
 
-    socket.onAny((event, data) {
+    socket.onAny((String event, Object? data) {
       // Skip high-frequency terminal streaming to avoid encoding overhead.
-      if (event == 'agent' && data is List && data.isNotEmpty && data[0] == 'terminalWrite') {
+      if (event == 'agent' &&
+          data is List<Object?> &&
+          data.isNotEmpty &&
+          data.first == 'terminalWrite') {
         return;
       }
-      log(jsonEncode(data), name: event);
+      log(data.toString(), name: event);
     });
   }
 
@@ -129,6 +123,7 @@ class DockgeClient extends _$DockgeClient with WidgetsBindingObserver {
     if (state.socket == null) return;
     final currentSocket = state.socket;
     state = state.copyWith(socket: null, status: .disconnected);
+    _connected = Completer<bool>();
     currentSocket?.disconnect();
     currentSocket?.dispose();
   }
