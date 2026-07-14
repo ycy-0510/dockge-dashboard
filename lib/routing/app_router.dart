@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:dockge_dashboard/features/auth/providers/auth_controller.dart';
 import 'package:dockge_dashboard/features/auth/screen/login_screen.dart';
+import 'package:dockge_dashboard/features/home/screen/composerize_screen.dart';
 import 'package:dockge_dashboard/features/home/screen/home_screen.dart';
 import 'package:dockge_dashboard/features/home/screen/stack_detail_screen.dart';
 import 'package:dockge_dashboard/features/home/screen/stack_edit_screen.dart';
@@ -52,15 +55,46 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => HomePage(),
       ),
       GoRoute(
-        path: AppRoutePath.stackNew,
-        name: AppRouteName.stackNew,
+        path: AppRoutePath.composerize,
+        name: AppRouteName.composerize,
         pageBuilder: (context, state) {
           return CustomTransitionPage(
             key: state.pageKey,
             fullscreenDialog: true,
             transitionDuration: const Duration(milliseconds: 300),
             reverseTransitionDuration: const Duration(milliseconds: 250),
-            child: const StackEditPage(isAdd: true),
+            child: const ComposerizePage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              final curved = CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+                reverseCurve: Curves.easeInCubic,
+              );
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              );
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutePath.stackNew,
+        name: AppRouteName.stackNew,
+        pageBuilder: (context, state) {
+          log(state.uri.queryParameters.toString());
+          return CustomTransitionPage(
+            key: state.pageKey,
+            fullscreenDialog: true,
+            transitionDuration: const Duration(milliseconds: 300),
+            reverseTransitionDuration: const Duration(milliseconds: 250),
+            child: StackEditPage(
+              isAdd: true,
+              prefillCompose: state.uri.queryParameters['prefillCompose'],
+            ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               final curved = CurvedAnimation(
                 parent: animation,

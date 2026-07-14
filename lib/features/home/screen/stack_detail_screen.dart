@@ -13,6 +13,25 @@ import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:xterm/ui.dart';
 
+enum _StackDetailTab { services, terminal }
+
+extension on _StackDetailTab {
+  FBottomNavigationBarItem get navigationItem => switch (this) {
+    .services => const FBottomNavigationBarItem(icon: Icon(FLucideIcons.server), label: Text('Services')),
+    .terminal => const FBottomNavigationBarItem(icon: Icon(FLucideIcons.squareTerminal), label: Text('Terminal')),
+  };
+
+  bool get shouldPadContent => switch (this) {
+    .services => true,
+    .terminal => false,
+  };
+
+  Widget get content => switch (this) {
+    .services => const StackDetailServices(),
+    .terminal => const StackDetailTerminal(),
+  };
+}
+
 class StackDetailPage extends ConsumerStatefulWidget {
   final String stackName;
   const StackDetailPage({super.key, required this.stackName});
@@ -22,7 +41,7 @@ class StackDetailPage extends ConsumerStatefulWidget {
 }
 
 class _StackDetailPageState extends ConsumerState<StackDetailPage> {
-  int _index = 0;
+  _StackDetailTab _selectedTab = _StackDetailTab.services;
 
   @override
   void initState() {
@@ -59,7 +78,7 @@ class _StackDetailPageState extends ConsumerState<StackDetailPage> {
     ref.watch(stackDetailProvider);
     ref.watch(stackTerminalProvider);
     return FScaffold(
-      childPad: _index != 1,
+      childPad: _selectedTab.shouldPadContent,
       header: FHeader.nested(
         prefixes: [
           FHeaderAction.back(
@@ -86,20 +105,17 @@ class _StackDetailPageState extends ConsumerState<StackDetailPage> {
         ],
       ),
       footer: FBottomNavigationBar(
-        index: _index,
+        index: _selectedTab.index,
         onChange: (index) {
           HapticFeedback.lightImpact();
-          setState(() => _index = index);
+          setState(() => _selectedTab = _StackDetailTab.values[index]);
         },
-        children: const [
-          FBottomNavigationBarItem(icon: Icon(FLucideIcons.server), label: Text('Services')),
-          FBottomNavigationBarItem(
-            icon: Icon(FLucideIcons.squareTerminal),
-            label: Text('Terminal'),
-          ),
-        ],
+        children: _StackDetailTab.values.map((tab) => tab.navigationItem).toList(growable: false),
       ),
-      child: [StackDetailServices(), StackDetailTerminal()][_index],
+      child: IndexedStack(
+        index: _selectedTab.index,
+        children: _StackDetailTab.values.map((tab) => tab.content).toList(growable: false),
+      ),
     );
   }
 }

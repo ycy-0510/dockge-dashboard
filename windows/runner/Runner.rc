@@ -92,7 +92,7 @@ BEGIN
             VALUE "CompanyName", "com.example" "\0"
             VALUE "FileDescription", "dockge_dashboard" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "dockge_dashboard" "\0"
+            VALUE "InternalName", "com.ycy.dockgedashboard" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "dockge_dashboard.exe" "\0"
             VALUE "ProductName", "dockge_dashboard" "\0"

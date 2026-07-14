@@ -10,22 +10,94 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
-class HomePage extends ConsumerWidget {
+enum _HomeTab { overview, stacks, network }
+
+extension on _HomeTab {
+  FBottomNavigationBarItem get navigationItem => switch (this) {
+    .overview => const FBottomNavigationBarItem(
+      icon: Icon(FLucideIcons.layoutDashboard),
+      label: Text('Overview'),
+    ),
+    .stacks => const FBottomNavigationBarItem(
+      icon: Icon(FLucideIcons.listTree),
+      label: Text('Stacks'),
+    ),
+    .network => const FBottomNavigationBarItem(
+      icon: Icon(FLucideIcons.network),
+      label: Text('Network'),
+    ),
+  };
+
+  Widget get content => switch (this) {
+    .overview => const Placeholder(),
+    .stacks => const HomeStackList(),
+    .network => const Placeholder(),
+  };
+}
+
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConsumerStatefulWidget> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> with SingleTickerProviderStateMixin {
+  late final _controller = FPopoverController(vsync: this);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  _HomeTab _selectedTab = _HomeTab.overview;
+
+  @override
+  Widget build(BuildContext context) {
     return FScaffold(
       header: FHeader(
         title: Text("Home"),
         suffixes: [
-          FHeaderAction(
-            icon: Icon(FLucideIcons.plus),
-            onPress: () {
-              HapticFeedback.lightImpact();
-              context.pushNamed(AppRouteName.stackNew);
-            },
+          FPopoverMenu(
+            autofocus: true,
+            menuAnchor: .topRight,
+            childAnchor: .bottomRight,
+            control: .managed(controller: _controller),
+            menu: [
+              .group(
+                divider: .indented,
+                children: [
+                  .item(
+                    prefix: Icon(FLucideIcons.server),
+                    title: Text('New Stack'),
+                    onPress: () {
+                      HapticFeedback.lightImpact();
+                      _controller.hide();
+                      context.pushNamed(AppRouteName.stackNew);
+                    },
+                  ),
+                  .item(
+                    prefix: Icon(FLucideIcons.arrowLeftRight),
+                    title: Text('Convert from docker run'),
+                    onPress: () {
+                      HapticFeedback.lightImpact();
+                      _controller.hide();
+                      context.pushNamed(AppRouteName.composerize);
+                    },
+                  ),
+                ],
+              ),
+            ],
+            builder: (_, controller, _) => FHeaderAction(
+              icon: Icon(FLucideIcons.plus),
+              onPress: () {
+                HapticFeedback.lightImpact();
+                controller.toggle();
+              },
+            ),
           ),
+
           SizedBox(width: 10),
           FAvatar.raw(
             child: Text((ref.watch(authControllerProvider).username ?? "U").toUpperCase()[0]),
@@ -61,7 +133,17 @@ class HomePage extends ConsumerWidget {
           ),
         ],
       ),
-      child: HomeStackList(),
+      footer: FBottomNavigationBar(
+        index: _selectedTab.index,
+        children: _HomeTab.values.map((tab) => tab.navigationItem).toList(growable: false),
+        onChange: (index) {
+          setState(() => _selectedTab = _HomeTab.values[index]);
+        },
+      ),
+      child: IndexedStack(
+        index: _selectedTab.index,
+        children: _HomeTab.values.map((tab) => tab.content).toList(growable: false),
+      ),
     );
   }
 }

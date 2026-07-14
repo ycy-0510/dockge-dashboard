@@ -23,7 +23,8 @@ const _defaultComposeTemplate = '''services:
 class StackEditPage extends ConsumerStatefulWidget {
   final String? stackName;
   final bool isAdd;
-  const StackEditPage({super.key, this.stackName, this.isAdd = false});
+  final String? prefillCompose;
+  const StackEditPage({super.key, this.stackName, this.prefillCompose, this.isAdd = false});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _StackEditPageState();
@@ -38,7 +39,7 @@ class _StackEditPageState extends ConsumerState<StackEditPage> {
   void initState() {
     super.initState();
     if (widget.isAdd) {
-      _composeYAMLController.text = _defaultComposeTemplate;
+      _composeYAMLController.text = widget.prefillCompose ?? _defaultComposeTemplate;
     } else {
       final stackDetail = ref.read(stackDetailProvider);
       if (stackDetail != null) {
@@ -100,12 +101,18 @@ class _StackEditPageState extends ConsumerState<StackEditPage> {
             actions: [
               FButton(
                 variant: .destructive,
-                onPress: () => Navigator.of(context).pop(true),
+                onPress: () {
+                  HapticFeedback.lightImpact();
+                  Navigator.of(context).pop(true);
+                },
                 child: const Text('Leave'),
               ),
               FButton(
                 variant: .outline,
-                onPress: () => Navigator.of(context).pop(false),
+                onPress: () {
+                  HapticFeedback.lightImpact();
+                  Navigator.of(context).pop(false);
+                },
                 child: const Text('Cancel'),
               ),
             ],
@@ -118,11 +125,30 @@ class _StackEditPageState extends ConsumerState<StackEditPage> {
       },
       child: FScaffold(
         header: FHeader.nested(
-          prefixes: [FHeaderAction.x(onPress: () => Navigator.of(context).maybePop())],
+          prefixes: [
+            FHeaderAction.x(
+              onPress: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).maybePop();
+              },
+            ),
+          ],
           title: Text(widget.isAdd ? 'New Stack' : 'Edit: ${widget.stackName}'),
           suffixes: [
-            FHeaderAction(icon: Icon(FLucideIcons.check), onPress: () => _submit(deploy: false)),
-            FHeaderAction(icon: Icon(FLucideIcons.rocket), onPress: () => _submit(deploy: true)),
+            FHeaderAction(
+              icon: Icon(FLucideIcons.check),
+              onPress: () {
+                HapticFeedback.lightImpact();
+                _submit(deploy: false);
+              },
+            ),
+            FHeaderAction(
+              icon: Icon(FLucideIcons.rocket),
+              onPress: () {
+                HapticFeedback.lightImpact();
+                _submit(deploy: true);
+              },
+            ),
           ],
         ),
         child: StackEditBody(
