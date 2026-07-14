@@ -66,9 +66,14 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSAllowsArbitraryLoads</key>
-    <true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow this app to use Face ID for quick authentication.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Connect to your Dockge server on the local network.</string>
 </dict>
 </plist>
