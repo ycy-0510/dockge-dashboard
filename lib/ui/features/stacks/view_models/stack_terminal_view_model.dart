@@ -35,10 +35,11 @@ class StackTerminalViewModel extends _$StackTerminalViewModel {
 
   @override
   StackTerminalViewState? build() {
+    final repository = ref.read(terminalRepositoryProvider);
     ref.onDispose(() {
       final stackName = _joinedStackName;
       if (stackName != null) {
-        ref.read(terminalRepositoryProvider).leave(stackName);
+        repository.leave(stackName);
       }
       unawaited(_outputSubscription?.cancel());
     });

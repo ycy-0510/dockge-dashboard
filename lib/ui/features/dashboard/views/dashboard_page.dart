@@ -5,6 +5,8 @@ import 'package:dockge_dashboard/ui/features/auth/view_models/auth_view_model.da
 import 'package:dockge_dashboard/routing/routes.dart';
 import 'package:dockge_dashboard/ui/features/dashboard/view_models/network_topology_view_model.dart';
 import 'package:dockge_dashboard/ui/features/stacks/view_models/stack_catalog_view_model.dart';
+import 'package:dockge_dashboard/ui/features/stacks/views/adaptive_stack_workspace.dart';
+import 'package:dockge_dashboard/ui/features/stacks/views/stack_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,12 +30,6 @@ extension on _DashboardTab {
       label: Text('Network'),
     ),
   };
-
-  Widget get content => switch (this) {
-    .overview => const DashboardOverview(),
-    .stacks => const StackCatalogView(),
-    .network => const NetworkTopologyView(),
-  };
 }
 
 class DashboardPage extends ConsumerStatefulWidget {
@@ -43,109 +39,183 @@ class DashboardPage extends ConsumerStatefulWidget {
   ConsumerState<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends ConsumerState<DashboardPage> with SingleTickerProviderStateMixin {
-  late final _controller = FPopoverController(vsync: this);
+class _DashboardPageState extends ConsumerState<DashboardPage> {
+  _DashboardTab _selectedTab = _DashboardTab.overview;
+  String? _selectedStackName;
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Widget _tabContent(_DashboardTab tab) => switch (tab) {
+    .overview => const DashboardOverview(),
+    .stacks => AdaptiveStackWorkspace(
+      compact: const StackCatalogView(),
+      catalogHeader: FHeader(
+        title: const Text('Stacks'),
+        suffixes: [_stackCreationMenu()],
+      ),
+      catalog: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: StackCatalogView(
+          selectedStackName: _selectedStackName,
+          onStackSelected: (stack) {
+            setState(() => _selectedStackName = stack.name);
+          },
+        ),
+      ),
+      detailHeader: _selectedStackName == null
+          ? FHeader(
+              title: const Text('Details'),
+              suffixes: _accountActions(),
+            )
+          : StackDetailHeader(
+              stackName: _selectedStackName!,
+              suffixes: _accountActions(),
+            ),
+      detail: _selectedStackName == null
+          ? const _StackSelectionPlaceholder()
+          : StackDetailPane(
+              key: ValueKey('stack-detail-$_selectedStackName'),
+              stackName: _selectedStackName!,
+              onDeleted: () => setState(() => _selectedStackName = null),
+            ),
+    ),
+    .network => const NetworkTopologyView(),
+  };
+
+  Widget _stackCreationMenu() {
+    return FPopoverMenu(
+      autofocus: true,
+      menuAnchor: .topRight,
+      childAnchor: .bottomRight,
+      menuBuilder: (context, controller, _) => [
+        .group(
+          divider: .indented,
+          children: [
+            .item(
+              prefix: const Icon(FLucideIcons.server),
+              title: const Text('New Stack'),
+              onPress: () {
+                HapticFeedback.lightImpact();
+                controller.hide();
+                this.context.pushNamed(AppRouteName.stackNew);
+              },
+            ),
+            .item(
+              prefix: const Icon(FLucideIcons.arrowLeftRight),
+              title: const Text('Convert from docker run'),
+              onPress: () {
+                HapticFeedback.lightImpact();
+                controller.hide();
+                this.context.pushNamed(AppRouteName.composerize);
+              },
+            ),
+          ],
+        ),
+      ],
+      builder: (_, controller, _) => FHeaderAction(
+        icon: const Icon(FLucideIcons.plus),
+        onPress: () {
+          HapticFeedback.lightImpact();
+          controller.toggle();
+        },
+      ),
+    );
   }
 
-  _DashboardTab _selectedTab = _DashboardTab.overview;
+  List<Widget> _accountActions() => [
+    const SizedBox(width: 10),
+    FAvatar.raw(
+      child: Text(
+        (ref.watch(authViewModelProvider).username ?? 'U').toUpperCase()[0],
+      ),
+    ),
+    const SizedBox(width: 10),
+    FHeaderAction(
+      onPress: () async {
+        HapticFeedback.lightImpact();
+        final result = await showFDialog<bool>(
+          context: context,
+          builder: (dialogContext, style, animation) => FDialog(
+            title: const Text('Log out?'),
+            body: const Text('Are you sure to log out?'),
+            actions: <Widget>[
+              FButton(
+                variant: .destructive,
+                onPress: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Log out'),
+              ),
+              FButton(
+                variant: .outline,
+                onPress: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        );
+        if (result == true && mounted) {
+          ref.read(authViewModelProvider.notifier).logout();
+        }
+      },
+      icon: const Icon(FLucideIcons.logOut),
+    ),
+  ];
+
+  Widget _rootHeader() => FHeader(
+    title: const Text('Home'),
+    suffixes: [
+      _stackCreationMenu(),
+      ..._accountActions(),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
-    return FScaffold(
-      header: FHeader(
-        title: Text("Home"),
-        suffixes: [
-          FPopoverMenu(
-            autofocus: true,
-            menuAnchor: .topRight,
-            childAnchor: .bottomRight,
-            control: .managed(controller: _controller),
-            menu: [
-              .group(
-                divider: .indented,
-                children: [
-                  .item(
-                    prefix: Icon(FLucideIcons.server),
-                    title: Text('New Stack'),
-                    onPress: () {
-                      HapticFeedback.lightImpact();
-                      _controller.hide();
-                      context.pushNamed(AppRouteName.stackNew);
-                    },
-                  ),
-                  .item(
-                    prefix: Icon(FLucideIcons.arrowLeftRight),
-                    title: Text('Convert from docker run'),
-                    onPress: () {
-                      HapticFeedback.lightImpact();
-                      _controller.hide();
-                      context.pushNamed(AppRouteName.composerize);
-                    },
-                  ),
-                ],
-              ),
-            ],
-            builder: (_, controller, _) => FHeaderAction(
-              icon: Icon(FLucideIcons.plus),
-              onPress: () {
-                HapticFeedback.lightImpact();
-                controller.toggle();
-              },
-            ),
-          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final splitStackHeader =
+            _selectedTab == .stacks && constraints.maxWidth >= stackWorkspaceTwoPaneMinWidth;
 
-          SizedBox(width: 10),
-          FAvatar.raw(
-            child: Text(
-              (ref.watch(authViewModelProvider).username ?? "U").toUpperCase()[0],
-            ),
-          ),
-          SizedBox(width: 10),
-          FHeaderAction(
-            onPress: () async {
+        return FScaffold(
+          childPad: !splitStackHeader,
+          header: splitStackHeader ? null : _rootHeader(),
+          footer: FBottomNavigationBar(
+            index: _selectedTab.index,
+            children: _DashboardTab.values.map((tab) => tab.navigationItem).toList(growable: false),
+            onChange: (index) {
               HapticFeedback.lightImpact();
-              final result = await showFDialog<bool>(
-                context: context,
-                builder: (dialogContext, style, animation) => FDialog(
-                  title: const Text('Log out?'),
-                  body: const Text('Are you sure to log out?'),
-                  actions: <Widget>[
-                    FButton(
-                      variant: FButtonVariant.destructive,
-                      onPress: () => Navigator.of(dialogContext).pop(true),
-                      child: const Text('Log out'),
-                    ),
-                    FButton(
-                      variant: FButtonVariant.outline,
-                      onPress: () => Navigator.of(dialogContext).pop(false),
-                      child: const Text('Cancel'),
-                    ),
-                  ],
-                ),
-              );
-              if (result == true && context.mounted) {
-                ref.read(authViewModelProvider.notifier).logout();
-              }
+              setState(() => _selectedTab = _DashboardTab.values[index]);
             },
-            icon: Icon(FLucideIcons.logOut),
+          ),
+          child: IndexedStack(
+            index: _selectedTab.index,
+            children: _DashboardTab.values.map(_tabContent).toList(growable: false),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _StackSelectionPlaceholder extends StatelessWidget {
+  const _StackSelectionPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 12,
+        children: [
+          Icon(
+            FLucideIcons.panelRightOpen,
+            size: 36,
+            color: context.theme.colors.mutedForeground,
+          ),
+          Text(
+            'Select a stack',
+            style: context.theme.typography.body.lg.copyWith(
+              color: context.theme.colors.mutedForeground,
+            ),
           ),
         ],
-      ),
-      footer: FBottomNavigationBar(
-        index: _selectedTab.index,
-        children: _DashboardTab.values.map((tab) => tab.navigationItem).toList(growable: false),
-        onChange: (index) {
-          setState(() => _selectedTab = _DashboardTab.values[index]);
-        },
-      ),
-      child: IndexedStack(
-        index: _selectedTab.index,
-        children: _DashboardTab.values.map((tab) => tab.content).toList(growable: false),
       ),
     );
   }
@@ -298,7 +368,14 @@ class _OverviewCard extends StatelessWidget {
 }
 
 class StackCatalogView extends ConsumerWidget {
-  const StackCatalogView({super.key});
+  const StackCatalogView({
+    this.selectedStackName,
+    this.onStackSelected,
+    super.key,
+  });
+
+  final String? selectedStackName;
+  final ValueChanged<StackSummary>? onStackSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -332,11 +409,15 @@ class StackCatalogView extends ConsumerWidget {
         StackListView(
           title: 'ACTIVE',
           items: activeItem,
+          selectedStackName: selectedStackName,
+          onStackSelected: onStackSelected,
           key: const ValueKey('active-section'),
         ),
         StackListView(
           title: 'STOPPED',
           items: stoppedItem,
+          selectedStackName: selectedStackName,
+          onStackSelected: onStackSelected,
           key: const ValueKey('stopped-section'),
         ),
         SliverToBoxAdapter(
@@ -348,9 +429,18 @@ class StackCatalogView extends ConsumerWidget {
 }
 
 class StackListView extends StatelessWidget {
-  const StackListView({super.key, required this.title, required this.items});
+  const StackListView({
+    required this.title,
+    required this.items,
+    this.selectedStackName,
+    this.onStackSelected,
+    super.key,
+  });
+
   final String title;
   final List<StackSummary> items;
+  final String? selectedStackName;
+  final ValueChanged<StackSummary>? onStackSelected;
 
   Icon statusIcon(StackStatus status) {
     switch (status) {
@@ -394,13 +484,19 @@ class StackListView extends StatelessWidget {
               Theme.of(context).brightness,
             );
             return FTile(
+              selected: selectedStackName == item.name,
               onPress: item.isManagedByDockge
                   ? () {
                       HapticFeedback.lightImpact();
-                      context.pushNamed(
-                        AppRouteName.stackDetail,
-                        pathParameters: {'name': item.name},
-                      );
+                      final onSelected = onStackSelected;
+                      if (onSelected != null) {
+                        onSelected(item);
+                      } else {
+                        context.pushNamed(
+                          AppRouteName.stackDetail,
+                          pathParameters: {'name': item.name},
+                        );
+                      }
                     }
                   : null,
               title: Text(item.name),

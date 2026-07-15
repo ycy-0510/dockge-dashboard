@@ -22,97 +22,178 @@ Future<void> _runAuthorized(
 enum _StackDetailTab { services, terminal }
 
 extension on _StackDetailTab {
-  FBottomNavigationBarItem get navigationItem => switch (this) {
-    .services => const FBottomNavigationBarItem(
-      icon: Icon(FLucideIcons.server),
-      label: Text('Services'),
+  Widget get label => switch (this) {
+    .services => const Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 6,
+      children: [Icon(FLucideIcons.server), Text('Services')],
     ),
-    .terminal => const FBottomNavigationBarItem(
-      icon: Icon(FLucideIcons.squareTerminal),
-      label: Text('Terminal'),
+    .terminal => const Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 6,
+      children: [Icon(FLucideIcons.squareTerminal), Text('Terminal')],
     ),
-  };
-
-  bool get shouldPadContent => switch (this) {
-    .services => true,
-    .terminal => false,
-  };
-
-  Widget get content => switch (this) {
-    .services => const StackDetailServices(),
-    .terminal => const StackDetailTerminal(),
   };
 }
 
-class StackDetailPage extends ConsumerStatefulWidget {
+class StackDetailPage extends StatelessWidget {
   final String stackName;
   const StackDetailPage({super.key, required this.stackName});
 
   @override
-  ConsumerState<StackDetailPage> createState() => _StackDetailPageState();
+  Widget build(BuildContext context) {
+    return FScaffold(
+      childPad: false,
+      header: StackDetailHeader(stackName: stackName, showBackButton: true),
+      child: StackDetailPane(stackName: stackName),
+    );
+  }
 }
 
-class _StackDetailPageState extends ConsumerState<StackDetailPage> {
-  _StackDetailTab _selectedTab = _StackDetailTab.services;
+class StackDetailHeader extends ConsumerWidget {
+  const StackDetailHeader({
+    required this.stackName,
+    this.showBackButton = false,
+    this.suffixes = const [],
+    super.key,
+  });
 
+  final String stackName;
+  final bool showBackButton;
+  final List<Widget> suffixes;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return FHeader(
+      title: showBackButton
+          ? Row(
+              children: [
+                FButton.icon(
+                  size: .sm,
+                  variant: .ghost,
+                  onPress: () {
+                    HapticFeedback.lightImpact();
+                    context.pop();
+                  },
+                  child: const Icon(FLucideIcons.arrowLeft),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    stackName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            )
+          : Text(stackName),
+      suffixes: [
+        FHeaderAction(
+          icon: const Icon(FLucideIcons.edit),
+          onPress: () {
+            HapticFeedback.mediumImpact();
+            _runAuthorized(
+              ref,
+              () => context.pushNamed(
+                AppRouteName.stackEdit,
+                pathParameters: {'name': stackName},
+              ),
+            );
+          },
+        ),
+        ...suffixes,
+      ],
+    );
+  }
+}
+
+class StackDetailPane extends ConsumerStatefulWidget {
+  const StackDetailPane({
+    required this.stackName,
+    this.onDeleted,
+    super.key,
+  });
+
+  final String stackName;
+  final VoidCallback? onDeleted;
+
+  @override
+  ConsumerState<StackDetailPane> createState() => _StackDetailPaneState();
+}
+
+class _StackDetailPaneState extends ConsumerState<StackDetailPane> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(stackDetailsViewModelProvider.notifier).fetch(widget.stackName);
-      ref.read(stackTerminalViewModelProvider.notifier).join(widget.stackName);
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadStack());
+  }
+
+  @override
+  void didUpdateWidget(covariant StackDetailPane oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.stackName != widget.stackName) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadStack());
+    }
+  }
+
+  void _loadStack() {
+    if (!mounted) return;
+    ref.read(stackDetailsViewModelProvider.notifier).fetch(widget.stackName);
+    ref.read(stackTerminalViewModelProvider.notifier).join(widget.stackName);
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen(stackDetailsViewModelProvider, (previous, next) {
       if (next.wasDeleted && previous?.wasDeleted != true) {
-        context.pop();
+        final onDeleted = widget.onDeleted;
+        if (onDeleted != null) {
+          onDeleted();
+        } else if (context.canPop()) {
+          context.pop();
+        } else {
+          context.goNamed(AppRouteName.home);
+        }
       }
     });
 
     ref.watch(stackDetailsViewModelProvider);
     ref.watch(stackTerminalViewModelProvider);
-    return FScaffold(
-      childPad: _selectedTab.shouldPadContent,
-      header: FHeader.nested(
-        prefixes: [
-          FHeaderAction.back(
-            onPress: () {
-              HapticFeedback.lightImpact();
-              context.pop();
-            },
-          ),
-        ],
-        title: Text(widget.stackName),
-        suffixes: [
-          FHeaderAction(
-            icon: Icon(FLucideIcons.edit),
-            onPress: () {
-              HapticFeedback.mediumImpact();
-              _runAuthorized(
-                ref,
-                () => context.pushNamed(
-                  AppRouteName.stackEdit,
-                  pathParameters: {'name': widget.stackName},
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      footer: FBottomNavigationBar(
-        index: _selectedTab.index,
-        onChange: (index) {
-          HapticFeedback.lightImpact();
-          setState(() => _selectedTab = _StackDetailTab.values[index]);
-        },
-        children: _StackDetailTab.values.map((tab) => tab.navigationItem).toList(growable: false),
-      ),
-      child: IndexedStack(
-        index: _selectedTab.index,
-        children: _StackDetailTab.values.map((tab) => tab.content).toList(growable: false),
+    return StackDetailTabs(
+      key: ValueKey('stack-detail-tabs-${widget.stackName}'),
+    );
+  }
+}
+
+class StackDetailTabs extends StatelessWidget {
+  const StackDetailTabs({
+    this.services = const StackDetailServices(),
+    this.terminal = const StackDetailTerminal(),
+    super.key,
+  });
+
+  final Widget services;
+  final Widget terminal;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = {
+      _StackDetailTab.services: services,
+      _StackDetailTab.terminal: terminal,
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: FTabs(
+        expands: true,
+        contentPhysics: const NeverScrollableScrollPhysics(),
+        onPress: (_) => HapticFeedback.lightImpact(),
+        children: _StackDetailTab.values
+            .map(
+              (tab) => FTabEntry(label: tab.label, child: content[tab]!),
+            )
+            .toList(growable: false),
       ),
     );
   }

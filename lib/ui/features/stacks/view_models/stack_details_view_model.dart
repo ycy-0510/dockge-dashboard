@@ -45,7 +45,11 @@ class StackDetailsViewModel extends _$StackDetailsViewModel {
 
   Future<void> fetch(String stackName) async {
     final revision = ++_fetchRevision;
-    state = StackDetailsViewState(details: state.details, isLoading: true);
+    final currentDetails = state.details;
+    state = StackDetailsViewState(
+      details: currentDetails?.name == stackName ? currentDetails : null,
+      isLoading: true,
+    );
     try {
       var details = await ref.read(stackRepositoryProvider).fetchDetails(stackName);
       if (!ref.mounted || revision != _fetchRevision) return;
