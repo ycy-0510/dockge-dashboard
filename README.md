@@ -4,11 +4,19 @@ A Flutter dashboard client for managing Dockge stacks.
 
 ## Architecture
 
-The application uses a layered structure:
+The application uses feature-first vertical slices:
 
-- `lib/data`: Dockge Socket.IO services, wire DTO validation, YAML parsers, and repository implementations.
-- `lib/domain`: immutable application models, repository contracts, and reusable use cases.
-- `lib/ui`: Riverpod view models, feature views, shared presentation state, and theme utilities.
-- `lib/core`: low-level connection, storage, and cross-layer infrastructure.
+```text
+lib/
+├── app/                  # App shell, routing, shared infrastructure and UI
+├── features/
+│   ├── auth/             # Models, services and views for authentication
+│   ├── composerize/      # Docker command conversion slice
+│   ├── dashboard/        # Dashboard models, services, views and widgets
+│   └── stacks/           # Stack models, services, views and widgets
+└── main.dart             # Bootstrap and dependency overrides
+```
 
-All untyped Socket.IO, JSON-like, and YAML values are validated at the data boundary before they reach domain or UI code. Strict casts, inference, and raw-type checks are enabled in `analysis_options.yaml`.
+Feature state, business rules, data access, and UI components stay inside their owning slice. `app/` only contains application composition, navigation, the shared Dockge transport and storage infrastructure, and presentation utilities used by multiple features. Runtime visual resources use Flutter's root `assets/` convention; tool configuration remains at the project root.
+
+Views coordinate rendering and UI-only interactions. Riverpod models own presentation state, while services own data access and reusable business operations. Untyped Socket.IO, JSON-like, and YAML values are validated before reaching views. Strict casts, inference, and raw-type checks are enabled in `analysis_options.yaml`.
