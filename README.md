@@ -2,21 +2,33 @@
 
 A Flutter dashboard client for managing Dockge stacks.
 
-## Architecture
+## Features
+- View all stacks and their status
+- Start, stop, and restart stacks
+- View stack logs (terminal output)
+- View stack details (containers, services, etc.)
+- Edit stack configurations (docker-compose.yml)
+- Overview of port usage and global virtual networks
+- A dashboard to display the overall status of all stacks and their containers
 
-The application uses feature-first vertical slices:
+## Demo
+Video demo: [https://youtube.com/shorts/zCTvJDmQva0](https://youtube.com/shorts/zCTvJDmQva0)
 
-```text
-lib/
-├── app/                  # App shell, routing, shared infrastructure and UI
-├── features/
-│   ├── auth/             # Models, services and views for authentication
-│   ├── composerize/      # Docker command conversion slice
-│   ├── dashboard/        # Dashboard models, services, views and widgets
-│   └── stacks/           # Stack models, services, views and widgets
-└── main.dart             # Bootstrap and dependency overrides
-```
-
-Feature state, business rules, data access, and UI components stay inside their owning slice. `app/` only contains application composition, navigation, the shared Dockge transport and storage infrastructure, and presentation utilities used by multiple features. Runtime visual resources use Flutter's root `assets/` convention; tool configuration remains at the project root.
-
-Views coordinate rendering and UI-only interactions. Riverpod models own presentation state, while services own data access and reusable business operations. Untyped Socket.IO, JSON-like, and YAML values are validated before reaching views. Strict casts, inference, and raw-type checks are enabled in `analysis_options.yaml`.
+## Development & Building from source
+0. Install Flutter SDK (https://docs.flutter.dev/get-started/install)
+1. Clone the repository
+    ```bash
+    git clone https://github.com/ycy-0510/dockge-dashboard.git
+    ```
+2. Navigate to the project directory
+    ```bash
+    cd dockge-dashboard
+    ```
+3. Install dependencies
+    ```bash
+    flutter pub get
+    ```
+4. Run the application
+    ```bash
+    flutter run
+    ```

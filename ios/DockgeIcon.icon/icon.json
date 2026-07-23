@@ -6,6 +6,21 @@
     {
       "layers" : [
         {
+          "fill-specializations" : [
+            {
+              "appearance" : "tinted",
+              "value" : "automatic"
+            }
+          ],
+          "hidden-specializations" : [
+            {
+              "value" : false
+            },
+            {
+              "appearance" : "tinted",
+              "value" : true
+            }
+          ],
           "image-name" : "dockge (2).png",
           "name" : "dockge (2)",
           "position" : {
@@ -13,6 +28,40 @@
             "translation-in-points" : [
               -7.125,
               -5.225000000000023
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            }
+          ],
+          "glass-specializations" : [
+            {
+              "appearance" : "tinted",
+              "value" : true
+            }
+          ],
+          "hidden-specializations" : [
+            {
+              "value" : true
+            },
+            {
+              "appearance" : "tinted",
+              "value" : false
+            }
+          ],
+          "image-name" : "透明背景圖示.png",
+          "name" : "透明背景圖示",
+          "position" : {
+            "scale" : 0.78,
+            "translation-in-points" : [
+              -6,
+              0
             ]
           }
         }
